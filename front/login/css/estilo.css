@@ -10,6 +10,14 @@ RECUERDA:
 */
 
 /*--FUENTES DE TEXTO--*/
+@font-face {
+    font-family: "titulo pixel" ;
+    src: url("fonts/04B_30__.TTF");
+}
+@font-face {
+    font-family: "letra" ;
+    src: url("fonts/Minecraft.ttf");
+}
 body{
     background-color: rgb(179, 151, 232);
     margin: 0;
@@ -18,18 +26,29 @@ body{
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-family: 'Courier New', Courier, monospace;
 }
 h1{
+    font-family: "titulo pixel";
+    font-size: 50px;
     text-align: center;
     margin-bottom: 20px;
+    /*Degradado*/
+    background: linear-gradient(to right, #1df1fd,#e910ee,#532c85);
+    -webkit-background-clip: text;
+    color: transparent;
+}
+h2{
+    font-family: "letra";
 }
 /*--FORMULARIO--*/
 .formulario{
+    background: white;
     width: 300px;        /* o el tamaño que quieras */
     padding: 20px;
     border-radius: 8px;
     text-align: center;
+    /*Sombreado*/
+    box-shadow: 0 4px 10px  rgba(43, 17, 79, 0.6);
 }
 .campo input{
     margin-bottom: 12px;
