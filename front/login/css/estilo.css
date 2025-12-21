@@ -1,34 +1,48 @@
 /*No te ralles Piero, luego lo iremos dejando más bonico*/
+
+/*
+RECUERDA:
+- Height = alto
+- Width = ancho
+- Padding = relleno
+- Margin = margen
+- Gap = "hueco"
+*/
+
+/*--FUENTES DE TEXTO--*/
 body{
     background-color: rgb(179, 151, 232);
     margin: 0;
-    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Courier New', Courier, monospace;
 }
 h1{
-    left: 50%; 
     text-align: center;
+    margin-bottom: 20px;
 }
 /*--FORMULARIO--*/
 .formulario{
-    top: 50%;
-    left: 50%; /*estos dos van a hacer que quede centrado*/
-    width: 400px;
-}
-.formulario h2{
+    width: 300px;        /* o el tamaño que quieras */
+    padding: 20px;
+    border-radius: 8px;
     text-align: center;
-    padding: 0 0 20px 0;
 }
-.formulario form{
-    padding: 0 40px;
-    box-sizing: border-box;
-}
-.placeholder{color: brown;}
 .campo input{
-    width: 100%;
-    padding: 0 5px;
+    margin-bottom: 12px;
     height: 40px;
     border-radius: 20px;
-    font-size: 16px;
-    border:none;/*poner color?*/
+    border: none;
     background: rgb(232, 224, 248);
+    font-size: 16px;
+    width: 100%; 
+}/* "%" hace que ocupe x porcentaje en base a lo que ocupa el formulario*/
+input{
+    height: 30px;
+    width: 50%;
+    border-radius: 12px;
+    margin-bottom: 12px;
 }
