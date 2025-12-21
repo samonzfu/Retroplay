@@ -44,5 +44,6 @@ input{
     height: 30px;
     width: 50%;
     border-radius: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 25px;
 }
+.campo input::placeholder{text-align: center;color:rgb(179, 151, 232);}
