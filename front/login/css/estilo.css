@@ -11,15 +11,24 @@ RECUERDA:
 
 /*--FUENTES DE TEXTO--*/
 @font-face {
-    font-family: "titulo pixel" ;
+    font-family: "titulo" ;
     src: url("fonts/04B_30__.TTF");
 }
 @font-face {
-    font-family: "letra" ;
-    src: url("fonts/Minecraft.ttf");
+    font-family: "negrita" ;
+    src: url("fonts/ari-w9500-bold.ttf");
 }
+@font-face {
+    font-family: "normal" ;
+    src: url("fonts/ari-w9500.ttf");
+}
+
 body{
-    background-color: rgb(179, 151, 232);
+    /*imagen de fondo*/
+    background-image: url(img/fondo.gif);
+    background-size: cover;
+    
+    font-family: "normal";
     margin: 0;
     min-height: 100vh;
     display: flex;
@@ -27,8 +36,9 @@ body{
     justify-content: center;
     align-items: center;
 }
+.recordar{font-family: "negrita";}
 h1{
-    font-family: "titulo pixel";
+    font-family: "titulo";
     font-size: 50px;
     text-align: center;
     margin-bottom: 20px;
@@ -38,7 +48,8 @@ h1{
     color: transparent;
 }
 h2{
-    font-family: "letra";
+    font-family: "negrita";
+    font-size: 30px;
 }
 /*--FORMULARIO--*/
 .formulario{
@@ -60,6 +71,7 @@ h2{
     width: 100%; 
 }/* "%" hace que ocupe x porcentaje en base a lo que ocupa el formulario*/
 input{
+    font-family: "normal";
     height: 30px;
     width: 50%;
     border-radius: 12px;
