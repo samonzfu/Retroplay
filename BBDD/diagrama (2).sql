@@ -20,7 +20,7 @@ CREATE TABLE producto (
   descripcion VARCHAR(255),
   precio VARCHAR(255),
   PRIMARY KEY (id)
-);
+);2w<
 
 CREATE TABLE lineareservas (
   id INT,
