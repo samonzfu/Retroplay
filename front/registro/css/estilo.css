@@ -55,6 +55,7 @@ h1 {
     /*Degradado*/
     background: linear-gradient(to right, #1df1fd, #e910ee, #532c85);
     -webkit-background-clip: text;
+    background-clip: text;
     color: transparent;
 }
 
