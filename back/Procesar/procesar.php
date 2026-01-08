@@ -1,6 +1,11 @@
 <?php
 
 
+// Habilitar reporte de errores para depuración
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 include '../Conexion_BD/conexion.php';
 
 if (isset($_POST['accion'])) {
@@ -14,7 +19,8 @@ if (isset($_POST['accion'])) {
 
 
         // Consulta directa INSERT
-        $sql = "INSERT INTO usuarios (id, nickname, correo, telefono, contrasea) VALUES ($id, '$nickname', '$correo', '$telefono', '$contrasena')";
+        // IMPORTANTE: id debe ser AUTO_INCREMENT en la base de datos
+        $sql = "INSERT INTO usuarios (nickname, correo, telefono, contrasena) VALUES ('$nickname', '$correo', '$telefono', '$contrasena')";
 
         if (mysqli_query($conexion, $sql)) {
             echo "<script>
@@ -30,7 +36,7 @@ if (isset($_POST['accion'])) {
         $contrasena = $_POST['contrasena'];
 
         // Consulta directa SELECT buscando coincidencia exacta de usuario y contraseña
-        $sql = "SELECT * FROM usuarios WHERE nickname = '$nickname' AND contrasea = '$contrasena'";
+        $sql = "SELECT * FROM usuarios WHERE nickname = '$nickname' AND contrasena = '$contrasena'";
         $resultado = mysqli_query($conexion, $sql);
 
         if (mysqli_num_rows($resultado) > 0) {

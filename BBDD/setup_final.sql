@@ -6,7 +6,7 @@ USE retroplay;
 
 -- 1. Usuarios
 CREATE TABLE IF NOT EXISTS usuarios (
-  id INT NOT NULL,
+  id INT NOT NULL AUTO_INCREMENT,
   nickname VARCHAR(255),
   correo VARCHAR(255),
   telefono VARCHAR(255),
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
 
 -- 2. Producto
 CREATE TABLE IF NOT EXISTS producto (
-  id INT NOT NULL,
+  id INT NOT NULL AUTO_INCREMENT,
   categoria VARCHAR(255),
   titulo VARCHAR(255),
   descripcion VARCHAR(255),
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS producto (
 
 -- 3. Reservas (depende de usuarios)
 CREATE TABLE IF NOT EXISTS reservas (
-  id INT NOT NULL,
+  id INT NOT NULL AUTO_INCREMENT,
   fecha VARCHAR(255),
   usuario_id INT,
   PRIMARY KEY (id),
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS reservas (
 
 -- 4. LineaReservas (depende de reservas y producto)
 CREATE TABLE IF NOT EXISTS lineareservas (
-  id INT NOT NULL,
+  id INT NOT NULL AUTO_INCREMENT,
   reservas_id INT,
   producto_id INT,
   PRIMARY KEY (id),
