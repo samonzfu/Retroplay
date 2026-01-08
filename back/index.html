@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Retroplay (Back Test)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #222;
+            color: #eee;
+            margin: 0;
+        }
+
+        form {
+            background: #333;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 320px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 0;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #e91e63;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #c2185b;
+        }
+    </style>
+</head>
+
+<body>
+    <form action="Procesar/procesar.php" method="POST">
+        <h2>Iniciar Sesión</h2>
+        <!-- El campo oculto 'accion' es crucial para que el PHP sepa que es un login -->
+        <input type="hidden" name="accion" value="login">
+
+        <input type="text" name="nickname" placeholder="Tu nickname" required>
+        <input type="password" name="contrasena" placeholder="Contraseña" required>
+
+        <button type="submit">Entrar</button>
+    </form>
+</body>
+
+</html>

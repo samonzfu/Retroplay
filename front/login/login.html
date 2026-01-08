@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetroPlay LogIn</title>
+    <link rel="stylesheet" href="css/estilo.css">
+</head>
+
+<body>
+    <h1>RetroPlay</h1>
+    <div class="formulario">
+        <h2>Inicio de sesión</h2>
+        <form method="post" action="../../back/Procesar/procesar.php">
+            <!--Al tener "campo" en común se puede aplicar el css a ambas-->
+            <div class="usuario campo">
+                <input type="text" name="nickname" placeholder="Usuario" required>
+            </div>
+            <div class="contrasena campo">
+                <input type="password" name="contrasena" placeholder="Contraseña" required>
+            </div>
+            <input type="hidden" name="accion" value="login">
+            <input type="submit" value="Entrar">
+            <div class="recordar">¿No tienes cuenta?</div>
+            <div class="registrarse">
+                <!--Los dos puntos en la ruta es para que suba una carpeta(explicado con perplexity)-->
+                <a href="../registro/registro.html">Crear una cuenta</a>
+            </div>
+        </form>
+</body>
+
+</html>
