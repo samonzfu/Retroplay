@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS lineareservas (
 -- CREAR USUARIO:
 CREATE USER 
 'retroplay'@'localhost' 
-IDENTIFIED  BY 'retroplay123';
+IDENTIFIED  BY 'Retroplay123$';
 
 GRANT USAGE ON *.* TO 'retroplay'@'localhost';
 
@@ -64,5 +64,3 @@ TO 'retroplay'@'localhost';
 
 -- recarga la tabla de privilegios
 FLUSH PRIVILEGES;
-
--- CONTRASEÑA SARA: Retroplay123$
