@@ -15,16 +15,19 @@ nav{
   padding:20px;display:flex;
   flex-direction:column;
 }
-main{
-  flex:4;
-  background:#b398e9;
-  padding:20px;
-  display:flex;
-  gap:20px;
+main {
+  flex: 4;
+  background: #b398e9;
+  padding: 20px;
+
+  display: flex;
+  flex-direction: column; /* Secciones una debajo de otra */
+  gap: 40px; /* Espacio entre secciones */
 }
+
 section {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* artículos en 3 columnas dentro de cada sección */
+  grid-template-columns: repeat(5, 1fr); /* artículos en 3 columnas dentro de cada sección */
   gap: 20px;
 }
 article{
