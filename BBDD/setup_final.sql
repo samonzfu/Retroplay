@@ -2,11 +2,6 @@
 CREATE DATABASE IF NOT EXISTS retroplay;
 USE retroplay;
 
--- Crear usuario de base de datos (según Creacion de usuario.sql)
-CREATE USER IF NOT EXISTS 'retroplay'@'localhost' IDENTIFIED BY 'retroplay123';
-GRANT ALL PRIVILEGES ON retroplay.* TO 'retroplay'@'localhost';
-FLUSH PRIVILEGES;
-
 -- Crear tablas en el orden correcto para respetar claves foráneas
 
 -- 1. Usuarios
@@ -47,3 +42,27 @@ CREATE TABLE IF NOT EXISTS lineareservas (
   CONSTRAINT fk_lineareservas_reserva FOREIGN KEY (reservas_id) REFERENCES reservas(id),
   CONSTRAINT fk_lineareservas_producto FOREIGN KEY (producto_id) REFERENCES producto(id)
 );
+
+-- CREAR USUARIO:
+CREATE USER 
+'retroplay'@'localhost' 
+IDENTIFIED  BY 'retroplay123';
+
+GRANT USAGE ON *.* TO 'retroplay'@'localhost';
+
+
+ALTER USER 'retroplay'@'localhost' 
+REQUIRE NONE 
+WITH MAX_QUERIES_PER_HOUR 0 
+MAX_CONNECTIONS_PER_HOUR 0 
+MAX_UPDATES_PER_HOUR 0 
+MAX_USER_CONNECTIONS 0;
+
+-- dale acceso a la base de datos retroplay
+GRANT ALL PRIVILEGES ON retroplay.* 
+TO 'retroplay'@'localhost';
+
+-- recarga la tabla de privilegios
+FLUSH PRIVILEGES;
+
+-- CONTRASEÑA SARA: Retroplay123$
