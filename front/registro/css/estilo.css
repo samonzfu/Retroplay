@@ -31,7 +31,7 @@ RECUERDA:
 
 body {
     /*imagen de fondo*/
-    background-image: url(img/fondo.gif);
+    background-image: url(img/espacio.gif);
     background-size: cover;
 
     font-family: "normal";
