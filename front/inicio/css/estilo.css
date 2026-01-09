@@ -1,54 +1,66 @@
-/*FALTA AÑADIR LAS FUENTEES Y CAMBIAR COLOR DE LTRA A MORADO*/
+/*FALTA AÑADIR:
+-FUENTES TXT
+-COLOR LETRA A MORADO
+-BOTÓN DE SUBIR
+*/
 
-/* Reset básico */
+/*
+RECUERDA:
+-Width
+-Margin
+-Padding
+-Height
+*/
+
+/*Elimina los márgenes y rellenos por defecto*/
 html, body {
-  width: 100%;
+  width: 100%;/*Hace que la web ocupe  todo el ancho*/
   margin: 0;
   padding: 0;
 }
 
-/* Layout principal */
+/* Estructura general */
 body {
-  display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100vh;/*Obliga al cuerpo a medir el 100% de la altura de la ventana*/
 }
+h2{text-align: center;}
 
-/* Navegación superior */
+/* NAVEGACIÓN */
 nav {
   height: 80px;
   padding: 0 30px;
   background: #7d50a1;
 
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 20px;
+  display: flex;/*Modo flexible*/
+  justify-content: flex-end;/*Empuja iconos a derecha*/
+  align-items: center;/*Centra iconos en vertical*/
+  gap: 20px; /*Espacio entre elementos*/
 
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);/*Sombreado suave hacia abajo*/
 }
 
-/* Enlaces del nav */
+/* "ENLACES" NAVEGACIÓN */
 nav a {
   width: 48px;
   height: 48px;
 
-  display: flex;
+  display: flex;/*Centrar el icono en el cuadrado */
   justify-content: center;
   align-items: center;
 
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;/*redondeo bordes*/
+  background: rgba(255, 255, 255, 0.15);/***CAMBIAR COLOR????***/
 
-  transition: background 0.25s, transform 0.2s;
+  transition: background 0.25s, transform 0.2s;/*Hace la transición más lenta*/
 }
 
-nav a:hover {
+nav a:hover {/*CUANDO PASAS EL RATÓN POR ENCIMA HACE:  */
   background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
 }
 
-/* Iconos del nav */
+/* Imágenes del nav */
 nav a img {
   width: 28px;
   height: 28px;
@@ -56,18 +68,19 @@ nav a img {
 
 /* Contenido principal */
 main {
-  flex: 1;
+  flex: 1;/*Ocupa el espacio q sobra*/
   padding: 30px;
   background: #d9c3f5;
   color: #333;
   overflow-y: auto;
 
   display: flex;
-  flex-direction: column;
-  gap: 40px;
+  flex-direction: column;/*Organiza las secciones una debajo de otra*/
+  gap: 40px;/*Separación entre videojuegos y consolas*/
 }
 
 /* Grids de productos */
+/*Esto va a hacer q se vea bien en móvil y pc*/
 section {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
