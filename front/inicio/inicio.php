@@ -31,7 +31,7 @@ if (!isset($conexion) || !$conexion) {
 <body>
   <!-- Navegación superior -->
   <nav>
-    <a href="../mi_cuenta/mi_cuenta.html">
+    <a href="../mi_cuenta/mi_cuenta.php">
       <img src="css/img/mi_cuenta.png" alt="Acceso a mi cuenta">
     </a>
     <a href="../mis_reservas/reservas.html">

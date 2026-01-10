@@ -12,67 +12,90 @@ if (isset($_POST['accion'])) {
     // Si la acción es 'registro', entramos en este bloque.
     if ($accion == 'registro') {
         // Recogemos los datos enviados desde el formulario de registro.
-        $nickname = $_POST['nickname'];
-        $contrasena = $_POST['contrasena']; // Nota: Idealmente las contraseñas deberían cifrarse (ej. password_hash).
-        $correo = $_POST['correo'];
-        $telefono = $_POST['telefono'];
+        $nickname = mysqli_real_escape_string($conexion, $_POST['nickname']);
+        $correo = mysqli_real_escape_string($conexion, $_POST['correo']);
+        $telefono = mysqli_real_escape_string($conexion, $_POST['telefono']);
+        $contrasena = password_hash($_POST['contrasena'], PASSWORD_DEFAULT); // Hashear contraseña
 
-        // Preparamos la consulta SQL para guardar al nuevo usuario.
-        // INSERT INTO tabla (columnas) VALUES (valores)
-        // No necesitamos pasar el 'id' porque en la base de datos es AUTO_INCREMENT (se crea solo).
-        $sql = "INSERT INTO usuarios (nickname, correo, telefono, contrasena) 
-                VALUES ('$nickname', '$correo', '$telefono', '$contrasena')";
-
-        // Ejecutamos la consulta contra la base de datos.
-        if (mysqli_query($conexion, $sql)) {
-            // SI TIENE ÉXITO:
-            // Mostramos una alerta JS y redirigimos al usuario a la página de login.
-            echo "<script>
-                    alert('Registro exitoso.');
-                    window.location.href = '../../front/login/login.html';
-                  </script>";
+        // Usar prepared statement para evitar inyección SQL
+        $stmt = $conexion->prepare("INSERT INTO usuarios (nickname, correo, telefono, contrasena) VALUES (?, ?, ?, ?)");
+        if ($stmt) {
+            $stmt->bind_param("ssss", $nickname, $correo, $telefono, $contrasena);
+            if ($stmt->execute()) {
+                echo "<script>
+                        alert('Registro exitoso.');
+                        window.location.href = '../../front/login/login.html';
+                      </script>";
+            } else {
+                if (isset($_GET['debug'])) { echo "<p style='color:red'>Error al ejecutar statement: " . htmlspecialchars($stmt->error) . "</p>"; }
+                echo "Error al registrar: " . mysqli_error($conexion);
+            }
+            $stmt->close();
         } else {
-            // SI FALLA:
-            // Mostramos el error que nos devuelve MySQL.
+            if (isset($_GET['debug'])) { echo "<p style='color:red'>Error prepare: " . htmlspecialchars($conexion->error) . "</p>"; }
             echo "Error al registrar: " . mysqli_error($conexion);
         }
+
         // PROCESO DE LOGIN
         // Si la acción es 'login', entramos en este otro bloque.
     } elseif ($accion == 'login') {
 
         // Recogemos los datos del formulario de login.
-        $nickname = $_POST['nickname'];
+        $nickname = mysqli_real_escape_string($conexion, $_POST['nickname']);
         $contrasena = $_POST['contrasena'];
 
-        // Preparamos la consulta SQL para buscar un usuario que coincida con el nombre Y la contraseña.
-        $sql = "SELECT * FROM usuarios WHERE nickname = '$nickname' AND contrasena = '$contrasena'";
-
-        // Ejecutamos la consulta.
-        $resultado = mysqli_query($conexion, $sql);
-
-        // Verificamos si la base de datos devolvió al menos una fila (significa que encontró al usuario).
-        if (mysqli_num_rows($resultado) > 0) {
-            // SI EXISTE EL USUARIO:
-            // Obtenemos los datos del usuario en un array asociativo ($row).
-            $row = mysqli_fetch_assoc($resultado);
-
-            // MODIFICADO: el login ya envía al inicio
-            echo "<script>
-                    alert('¡Bienvenido, " . $row['nickname'] . "!');
-                    window.location.href = '../../front/inicio/inicio.php'; 
-                  </script>";
+        // Comprobar usuario
+        $stmt = $conexion->prepare("SELECT id, nickname, contrasena FROM usuarios WHERE nickname = ?");
+        if ($stmt) {
+            $stmt->bind_param("s", $nickname);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            if ($res->num_rows > 0) {
+                $row = $res->fetch_assoc();
+                if (password_verify($contrasena, $row['contrasena'])) {
+                    session_start();
+                    $_SESSION['user_id'] = $row['id'];
+                    $_SESSION['nickname'] = $row['nickname'];
+                    header('Location: ../../front/inicio/inicio.php');
+                    exit;
+                } else {
+                    echo "<script>alert('Usuario o contraseña incorrectos.'); window.history.back();</script>";
+                }
+            } else {
+                echo "<script>alert('Usuario o contraseña incorrectos.'); window.history.back();</script>";
+            }
+            $stmt->close();
         } else {
-            // SI NO EXISTE O CONTRASEÑA INCORRECTA:
-            // Mandamos una alerta y usamos history.back() para que vuelva al formulario.
-            echo "<script>
-                    alert('Usuario o contraseña incorrectos.');
-                    window.history.back();
-                  </script>";
+            if (isset($_GET['debug'])) { echo "<p style='color:red'>Error en la consulta: " . htmlspecialchars($conexion->error) . "</p>"; }
         }
-    }
 
-} else {
-    // CASO DE ERROR: PARAMETROS FALTANTES
-    echo "Faltan parámetros.";
+    // Acción para actualizar perfil
+    } elseif ($accion == 'update_profile') {
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            echo "<script>alert('No autorizado.'); window.location.href='../../front/login/login.html';</script>";
+            exit;
+        }
+        $id = $_SESSION['user_id'];
+        $nickname = mysqli_real_escape_string($conexion, $_POST['nickname']);
+        $correo = mysqli_real_escape_string($conexion, $_POST['correo']);
+        $telefono = mysqli_real_escape_string($conexion, $_POST['telefono']);
+        $newpass = (isset($_POST['new_password']) && trim($_POST['new_password']) !== '') ? password_hash($_POST['new_password'], PASSWORD_DEFAULT) : null;
+
+        if ($newpass) {
+            $stmt = $conexion->prepare("UPDATE usuarios SET nickname=?, correo=?, telefono=?, contrasena=? WHERE id=?");
+            $stmt->bind_param("ssssi", $nickname, $correo, $telefono, $newpass, $id);
+        } else {
+            $stmt = $conexion->prepare("UPDATE usuarios SET nickname=?, correo=?, telefono=? WHERE id=?");
+            $stmt->bind_param("sssi", $nickname, $correo, $telefono, $id);
+        }
+        if ($stmt->execute()) {
+            $_SESSION['nickname'] = $nickname;
+            echo "<script>alert('Perfil actualizado'); window.location.href='../../front/mi_cuenta/mi_cuenta.php';</script>";
+        } else {
+            echo "<script>alert('Error al actualizar perfil.'); window.history.back();</script>";
+        }
+        $stmt->close();
+}
 }
 ?>
