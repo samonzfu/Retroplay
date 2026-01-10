@@ -78,10 +78,10 @@ if (isset($_POST['accion'])) {
             // Obtenemos los datos del usuario en un array asociativo ($row).
             $row = mysqli_fetch_assoc($resultado);
 
-            // Le damos la bienvenida y lo redirigimos (por ahora, al mismo login o dashboard).
+            // MODIFICACIÓN AQUÍ: Cambiamos la ruta de redirección
             echo "<script>
                     alert('¡Bienvenido, " . $row['nickname'] . "!');
-                    window.location.href = '../../front/login/login.html';
+                    window.location.href = '../../front/inicio/inicio.html'; 
                   </script>";
         } else {
             // SI NO EXISTE O CONTRASEÑA INCORRECTA:
