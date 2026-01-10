@@ -23,23 +23,7 @@
   <main>
     <h2>Artículos en tu carrito</h2>
     <section id="lista-carrito">
-      
-      <article>
-        <img src="css/img/nintendogs.jpg" alt="GameBoy Color">
-        <h3>GameBoy Color</h3>
-        <h4>1 semana</h4>
-        <p>15 €</p>
-        <a href="">Eliminar</a>
-      </article>
-
-      <article>
-        <img src="css/img/nintendogs.jpg" alt="Pokemon Rojo">
-        <h3>Pokémon Rojo</h3>
-        <h4>2 semanas</h4>
-        <p>20 €</p>
-        <a href="">Eliminar</a>
-      </article>
-
+      <!-- Los artículos del carrito se renderizan aquí -->
     </section>
 
     <h2>Resumen del pedido</h2>
@@ -48,11 +32,117 @@
         <img src="css/img/carrito.png" alt="Total" style="opacity: 0.5;"> 
         <h3>Total a pagar</h3>
         <h4>Incluye impuestos</h4>
-        <p style="font-size: 1.2rem;">35 €</p>
-        <a href="">Proceder al pago</a>
+        <p id="total" style="font-size: 1.2rem;">0.00 €</p>
+        <button id="btn-proceder">Proceder al pago</button>
       </article>
     </section>
 
   </main>
+
+  <!-- Modal para confirmar la reserva -->
+  <div id="modal-compra" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:20px; border-radius:8px; max-width:90%; text-align:center; margin:auto;">
+      <p style="font-size:1.1rem; margin-bottom:1rem;"><strong>Pásate por la tienda física para pagar y recoger tu reserva.</strong></p>
+      <div style="display:flex; gap:8px; justify-content:center;">
+        <button id="modal-compra-confirm">Confirmar reserva</button>
+        <button id="modal-compra-cancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  function formatCurrency(n){ return n.toFixed(2) + ' €'; }
+  function showToast(msg){
+    var existing = document.getElementById('copilot-toast');
+    if (existing){ clearTimeout(existing._timeout); existing.remove(); }
+    var d = document.createElement('div'); d.id = 'copilot-toast'; d.textContent = msg;
+    d.style.position = 'fixed'; d.style.right = '20px'; d.style.top = '20px'; d.style.background = '#333'; d.style.color = '#fff'; d.style.padding = '10px 14px'; d.style.borderRadius = '6px'; d.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)'; d.style.zIndex = 9999; d.style.opacity = 1; d.style.transition = 'opacity 0.3s';
+    document.body.appendChild(d);
+    d._timeout = setTimeout(function(){ d.style.opacity = '0'; setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); }, 300); }, 2000);
+  }
+
+  function addDays(date, days){ var d = new Date(date); d.setDate(d.getDate() + days); return d; }
+
+  function renderCart(){
+    var list = document.getElementById('lista-carrito');
+    var cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    list.innerHTML = '';
+    if (!cart.length){
+      list.innerHTML = '<p>Tu carrito está vacío.</p>';
+      return updateSummary();
+    }
+    cart.forEach(function(item){
+      var article = document.createElement('article');
+      var img = document.createElement('img'); img.src = item.img || 'css/img/nintendogs.jpg'; img.alt = item.title;
+      var h3 = document.createElement('h3'); h3.textContent = item.title;
+      var h4 = document.createElement('h4'); h4.textContent = (item.qty || 1) + ' semana(s)';
+      var p = document.createElement('p'); p.textContent = formatCurrency((item.price||0) * (item.qty||1));
+      var a = document.createElement('a'); a.href = '#'; a.textContent = 'Eliminar'; a.dataset.id = item.id;
+      a.addEventListener('click', function(e){ e.preventDefault(); removeFromCart(item.id); });
+      article.appendChild(img); article.appendChild(h3); article.appendChild(h4); article.appendChild(p); article.appendChild(a);
+      list.appendChild(article);
+    });
+    updateSummary();
+  }
+
+  function updateSummary(){
+    var cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    var total = cart.reduce(function(sum, it){ return sum + ((it.price||0) * (it.qty||1)); }, 0);
+    document.getElementById('total').textContent = formatCurrency(total);
+  }
+
+  function removeFromCart(id){
+    var cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    cart = cart.filter(function(it){ return it.id !== id; });
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCart();
+  }
+
+  function confirmReservation(){
+    var cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    if (!cart.length){ showToast('El carrito está vacío'); document.getElementById('modal-compra').style.display = 'none'; return; }
+    var reservas = JSON.parse(localStorage.getItem('reservas') || '[]');
+    var now = new Date();
+    cart.forEach(function(item){
+      var reservedAt = new Date();
+      var returnDate = addDays(reservedAt, (item.qty || 1) * 7);
+      reservas.push({
+        reservationId: Date.now() + '-' + Math.floor(Math.random()*100000),
+        prodId: item.id,
+        title: item.title,
+        price: item.price,
+        img: item.img,
+        qty: item.qty || 1,
+        reservedAt: reservedAt.toISOString(),
+        returnDate: returnDate.toISOString()
+      });
+    });
+    localStorage.setItem('reservas', JSON.stringify(reservas));
+    // Vaciar carrito
+    localStorage.setItem('cart', JSON.stringify([]));
+    renderCart();
+    document.getElementById('modal-compra').style.display = 'none';
+    var count = cart.length;
+    showToast('Reserva registrada (' + count + ' artículo' + (count!==1 ? 's' : '') + ')');
+    console.log('Reservas guardadas:', reservas);
+    // Redirigir a Mis Reservas para que el usuario vea sus reservas (añadimos un flag para confirmación)
+    setTimeout(function(){ window.location.href = '../mis_reservas/reservas.html?reserved=1'; }, 800);
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var btn = document.getElementById('btn-proceder');
+    if (btn) btn.addEventListener('click', function(){
+      var cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      if (!cart.length){ showToast('El carrito está vacío'); return; }
+      document.getElementById('modal-compra').style.display = 'flex';
+    });
+    var ok = document.getElementById('modal-compra-confirm');
+    if (ok) ok.addEventListener('click', function(){ confirmReservation(); });
+    var cancel = document.getElementById('modal-compra-cancel');
+    if (cancel) cancel.addEventListener('click', function(){ document.getElementById('modal-compra').style.display = 'none'; });
+    renderCart();
+  });
+  </script>
+
 </body>
 </html>

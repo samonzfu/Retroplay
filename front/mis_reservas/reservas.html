@@ -23,16 +23,54 @@
   <main>
     <h2>Reservas Activas</h2>
     <section id="reservas-activas">
-      
-      <article>
-        <img src="css/img/nintendogs.jpg" alt="Nintendogs">
-        <h3>Título</h3>
-        <h4>Disponibilidad</h4> <!--HAY QUE IMPLEMENTAR LO DE LAS FECHAS DE RESERVA-->
-        <p>10 € por semana</p>
-        <a href="">Devolver ahora</a>
-      </article>
-
+      <!-- Reservas se renderizan desde localStorage -->
     </section>
+
+  <script>
+  function formatDateISO(iso){ var d = new Date(iso); return d.toLocaleDateString('es-ES') + ' ' + d.toLocaleTimeString('es-ES'); }
+
+  function renderReservas(){
+    var list = document.getElementById('reservas-activas');
+    var reservas = JSON.parse(localStorage.getItem('reservas') || '[]');
+    list.innerHTML = '';
+    if (!reservas.length){ list.innerHTML = '<p>No tienes reservas activas.</p>'; return; }
+    reservas.forEach(function(r){
+      var article = document.createElement('article');
+      var img = document.createElement('img'); img.src = r.img || 'css/img/nintendogs.jpg'; img.alt = r.title;
+      var h3 = document.createElement('h3'); h3.textContent = r.title;
+      var h4 = document.createElement('h4'); h4.textContent = 'Reservado: ' + formatDateISO(r.reservedAt) + ' — Devolver antes de: ' + (new Date(r.returnDate)).toLocaleDateString('es-ES');
+      var p = document.createElement('p'); p.textContent = (r.price||0) + ' € por semana — Cantidad: ' + (r.qty||1);
+      var a = document.createElement('a'); a.href = '#'; a.textContent = 'Devolver ahora'; a.dataset.resid = r.reservationId;
+      a.addEventListener('click', function(e){ e.preventDefault(); removeReserva(r.reservationId); });
+      article.appendChild(img); article.appendChild(h3); article.appendChild(h4); article.appendChild(p); article.appendChild(a);
+      list.appendChild(article);
+    });
+  }
+
+  function removeReserva(resId){
+    var reservas = JSON.parse(localStorage.getItem('reservas') || '[]');
+    reservas = reservas.filter(function(r){ return r.reservationId !== resId; });
+    localStorage.setItem('reservas', JSON.stringify(reservas));
+    renderReservas();
+  }
+
+  function showToast(msg){
+    var existing = document.getElementById('copilot-toast');
+    if (existing){ clearTimeout(existing._timeout); existing.remove(); }
+    var d = document.createElement('div'); d.id = 'copilot-toast'; d.textContent = msg;
+    d.style.position = 'fixed'; d.style.right = '20px'; d.style.top = '20px'; d.style.background = '#333'; d.style.color = '#fff'; d.style.padding = '10px 14px'; d.style.borderRadius = '6px'; d.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)'; d.style.zIndex = 9999; d.style.opacity = 1; d.style.transition = 'opacity 0.3s';
+    document.body.appendChild(d);
+    d._timeout = setTimeout(function(){ d.style.opacity = '0'; setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); }, 300); }, 2000);
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    renderReservas();
+    try{
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('reserved') === '1') showToast('Reserva registrada correctamente');
+    }catch(e){ /* ignored */ }
+  });
+  </script>
   </main>
 </body>
 </html>

@@ -71,7 +71,7 @@ if (!isset($conexion) || !$conexion) {
           echo "<h3>" . htmlspecialchars($p['titulo']) . "</h3>";
           echo "<h4>Disponibilidad</h4>";
           echo "<p>" . htmlspecialchars($p['precio']) . " por semana</p>";
-          echo "<a href=\"../carrito/carrito.html?add=" . $p['id'] . "\">Añadir al carrito</a>";
+          echo '<a href="#" class="add-to-cart" data-id="' . htmlspecialchars($p['id'], ENT_QUOTES) . '" data-title="' . htmlspecialchars($p['titulo'], ENT_QUOTES) . '" data-price="' . htmlspecialchars($p['precio'], ENT_QUOTES) . '" data-img="' . htmlspecialchars($img_path, ENT_QUOTES) . '">Añadir al carrito</a>';
           echo "</article>";
         }
       }
@@ -104,12 +104,45 @@ if (!isset($conexion) || !$conexion) {
           echo "<h3>" . htmlspecialchars($p['titulo']) . "</h3>";
           echo "<h4>Disponibilidad</h4>";
           echo "<p>" . htmlspecialchars($p['precio']) . " por semana</p>";
-          echo "<a href=\"../carrito/carrito.html?add=" . $p['id'] . "\">Añadir al carrito</a>";
+          echo '<a href="#" class="add-to-cart" data-id="' . htmlspecialchars($p['id'], ENT_QUOTES) . '" data-title="' . htmlspecialchars($p['titulo'], ENT_QUOTES) . '" data-price="' . htmlspecialchars($p['precio'], ENT_QUOTES) . '" data-img="' . htmlspecialchars($img_path, ENT_QUOTES) . '">Añadir al carrito</a>';
           echo "</article>";
         }
       }
       ?>
     </section>
   </main>
+
+  <script>
+  // Añadir al carrito: guarda producto en localStorage y muestra notificación (sin redirigir)
+  function showToast(msg){
+    var existing = document.getElementById('copilot-toast');
+    if (existing){ clearTimeout(existing._timeout); existing.remove(); }
+    var d = document.createElement('div'); d.id = 'copilot-toast'; d.textContent = msg;
+    d.style.position = 'fixed'; d.style.right = '20px'; d.style.top = '20px'; d.style.background = '#333'; d.style.color = '#fff'; d.style.padding = '10px 14px'; d.style.borderRadius = '6px'; d.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)'; d.style.zIndex = 9999; d.style.opacity = 1; d.style.transition = 'opacity 0.3s';
+    document.body.appendChild(d);
+    d._timeout = setTimeout(function(){ d.style.opacity = '0'; setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); }, 300); }, 2000);
+  }
+
+  document.addEventListener('click', function(e) {
+    if (e.target.matches('.add-to-cart')) {
+      e.preventDefault();
+      var el = e.target;
+      var product = {
+        id: el.dataset.id,
+        title: el.dataset.title,
+        price: parseFloat((el.dataset.price || '').replace(',','.')) || 0,
+        img: el.dataset.img,
+        qty: 1
+      };
+      var cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      var existing = cart.find(function(it){ return it.id === product.id; });
+      if (existing) { existing.qty = (existing.qty || 1) + 1; }
+      else { cart.push(product); }
+      localStorage.setItem('cart', JSON.stringify(cart));
+      showToast('Producto añadido al carrito');
+    }
+  });
+  </script>
+
 </body>
 </html>
