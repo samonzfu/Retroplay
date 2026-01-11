@@ -81,7 +81,7 @@ if (isset($_POST['accion'])) {
             // Le damos la bienvenida y lo redirigimos (por ahora, al mismo login o dashboard).
             echo "<script>
                     alert('¡Bienvenido, " . $row['nickname'] . "!');
-                    window.location.href = '../../front/login/login.html';
+                    window.location.href = '../../front/inicio/inicio.php';
                   </script>";
         } else {
             // SI NO EXISTE O CONTRASEÑA INCORRECTA:
