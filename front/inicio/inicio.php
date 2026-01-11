@@ -1,26 +1,37 @@
 <?php
+// Incluir el archivo de conexión a la base de datos.
 include '../../back/Conexion_BD/conexion.php';
 
-// Activa la depuración si visitas la página con ?debug=1
+// ------------------------------------------------------------------------------------------------
+// CONFIGURACIÓN DE DEPURACIÓN
+// ------------------------------------------------------------------------------------------------
+// Activa la visualización de errores si se pasa el parámetro ?debug=1 en la URL.
+// Esto es útil para desarrollo, pero debe estar desactivado en producción.
 if (isset($_GET['debug'])) {
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
+  ini_set('display_errors', 1);
+  ini_set('display_startup_errors', 1);
+  error_reporting(E_ALL);
 }
 
-// Comprobación de conexión a la base de datos
+// ------------------------------------------------------------------------------------------------
+// VERIFICACIÓN DE CONEXIÓN
+// ------------------------------------------------------------------------------------------------
+// Verificamos si la variable $conexion existe y es válida.
 if (!isset($conexion) || !$conexion) {
-    echo '<!DOCTYPE html><html><body>';
-    echo '<h2 style="color:red">Error: no se pudo conectar a la base de datos.</h2>';
-    if (isset($_GET['debug'])) {
-        echo '<pre style="color:red">' . htmlspecialchars(mysqli_connect_error()) . '</pre>';
-    }
-    echo '</body></html>';
-    exit;
+  echo '<!DOCTYPE html><html><body>';
+  echo '<h2 style="color:red">Error: no se pudo conectar a la base de datos.</h2>';
+  // Si el modo debug está activo, mostramos el error específico de MySQL.
+  if (isset($_GET['debug'])) {
+    echo '<pre style="color:red">' . htmlspecialchars(mysqli_connect_error()) . '</pre>';
+  }
+  echo '</body></html>';
+  // Detenemos la ejecución si no hay base de datos.
+  exit;
 }
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -50,68 +61,121 @@ if (!isset($conexion) || !$conexion) {
     <h2>Videojuegos</h2>
     <section id="videojuegos">
       <?php
-      // Selección insensible a mayúsculas y comprobación de errores (activar con ?debug=1)
+      // ------------------------------------------------------------------------------------------------
+      // SECCIÓN DE VIDEOJUEGOS
+      // ------------------------------------------------------------------------------------------------
+      
+      // Consulta SQL para seleccionar todos los productos donde la categoría sea 'videojuego'.
+      // LOWER() convierte la categoría a minúsculas para evitar problemas de mayúsculas/minúsculas.
       $sql_v = "SELECT * FROM producto WHERE LOWER(categoria) = 'videojuego'";
+
+      // Ejecutar la consulta contra la base de datos.
       $res_v = mysqli_query($conexion, $sql_v);
+
+      // Verificar si la consulta falló.
       if (!$res_v) {
-        if (isset($_GET['debug'])) { echo "<p style='color:red'>Error consulta videojuegos: " . htmlspecialchars(mysqli_error($conexion)) . "</p>"; }
+        if (isset($_GET['debug'])) {
+          echo "<p style='color:red'>Error consulta videojuegos: " . htmlspecialchars(mysqli_error($conexion)) . "</p>";
+        }
       } else {
-        if (mysqli_num_rows($res_v) === 0 && isset($_GET['debug'])) { echo "<p style='color:orange'>Aviso: no se encontraron videojuegos.</p>"; }
+        // Verificar si no se encontraron productos.
+        if (mysqli_num_rows($res_v) === 0 && isset($_GET['debug'])) {
+          echo "<p style='color:orange'>Aviso: no se encontraron videojuegos.</p>";
+        }
+
+        // Bucle while: recorre cada fila devuelta por la base de datos.
         while ($p = mysqli_fetch_assoc($res_v)) {
-          // Usar el nombre de imagen guardado en la BD (campo imagen). Sanitizar y buscar en carpeta videojuegos
+
+          // Lógica para determinar la imagen del producto.
+          // Si el campo 'imagen' no está vacío, usamos ese nombre.
           $filename = isset($p['imagen']) && trim($p['imagen']) !== '' ? basename($p['imagen']) : '';
+
           if ($filename !== '') {
             $img_path = "css/img/videojuegos/{$filename}";
+            // Verificamos si el archivo de imagen realmente existe en el servidor.
             if (!file_exists(__DIR__ . '/' . $img_path)) {
-              if (isset($_GET['debug'])) { echo "<p style='color:orange'>Aviso: imagen no encontrada: " . htmlspecialchars($img_path) . "</p>"; }
+              if (isset($_GET['debug'])) {
+                echo "<p style='color:orange'>Aviso: imagen no encontrada: " . htmlspecialchars($img_path) . "</p>";
+              }
+              // Imagen por defecto si no existe el archivo.
               $img_path = 'css/img/videojuegos/nintendogs.jpg';
             }
           } else {
-            $img_path = 'css/img/videojuegos/nintendogs.jpg'; // imagen por defecto
+            // Imagen por defecto si no hay nombre de imagen en la BD.
+            $img_path = 'css/img/videojuegos/nintendogs.jpg';
           }
+
+          // Renderizar el HTML de cada artículo (producto).
           echo "<article>";
+          // Mostramos la imagen del producto.
           echo "<img src=\"{$img_path}\" alt=\"" . htmlspecialchars($p['titulo']) . "\">";
+          // Mostramos el título.
           echo "<h3>" . htmlspecialchars($p['titulo']) . "</h3>";
           echo "<h4>Disponibilidad</h4>";
+          // Mostramos el precio.
           echo "<p>" . htmlspecialchars($p['precio']) . " por semana</p>";
+          // Botón de 'Añadir al carrito' con atributos data-* para que JavaScript los lea.
           echo '<a href="#" class="add-to-cart" data-id="' . htmlspecialchars($p['id'], ENT_QUOTES) . '" data-title="' . htmlspecialchars($p['titulo'], ENT_QUOTES) . '" data-price="' . htmlspecialchars($p['precio'], ENT_QUOTES) . '" data-img="' . htmlspecialchars($img_path, ENT_QUOTES) . '">Añadir al carrito</a>';
           echo "</article>";
         }
       }
       ?>
     </section>
+  
+      <h2>Consolas</h2>
+       <section id="consolas">
+        <?php
+        // ------------------------------------------------------------------------------------------------
+        // SECCIÓN DE CONSOLAS
+        // ------------------------------------------------------------------------------------------------
+        
+        // Consulta SQL para seleccionar consolas.
+        $sql_c = "SELECT * FROM producto WHERE LOWER(categoria) = 'consola'";
 
-    <h2>Consolas</h2>
-    <section id="consolas">
-      <?php
-      $sql_c = "SELECT * FROM producto WHERE LOWER(categoria) = 'consola'";
-      $res_c = mysqli_query($conexion, $sql_c);
-      if (!$res_c) {
-        if (isset($_GET['debug'])) { echo "<p style='color:red'>Error consulta consolas: " . htmlspecialchars(mysqli_error($conexion)) . "</p>"; }
-      } else {
-        if (mysqli_num_rows($res_c) === 0 && isset($_GET['debug'])) { echo "<p style='color:orange'>Aviso: no se encontraron consolas.</p>"; }
-        while ($p = mysqli_fetch_assoc($res_c)) {
-          // Usar el nombre de imagen guardado en la BD (campo imagen). Sanitizar y buscar en carpeta consolas
-          $filename = isset($p['imagen']) && trim($p['imagen']) !== '' ? basename($p['imagen']) : '';
-          if ($filename !== '') {
-            $img_path = "css/img/consolas/{$filename}";
-            if (!file_exists(__DIR__ . '/' . $img_path)) {
-              if (isset($_GET['debug'])) { echo "<p style='color:orange'>Aviso: imagen no encontrada: " . htmlspecialchars($img_path) . "</p>"; }
+        // Ejecutar consulta.
+        $res_c = mysqli_query($conexion, $sql_c);
+
+        // Comprobar errores.
+        if (!$res_c) {
+          if (isset($_GET['debug'])) {
+            echo "<p style='color:red'>Error consulta consolas: " . htmlspecialchars(mysqli_error($conexion)) . "</p>";
+          }
+        } else {
+          // Comprobar si está vacío.
+          if (mysqli_num_rows($res_c) === 0 && isset($_GET['debug'])) {
+            echo "<p style='color:orange'>Aviso: no se encontraron consolas.</p>";
+          }
+
+          // Recorrer los resultados.
+          while ($p = mysqli_fetch_assoc($res_c)) {
+            // Lógica de imagen (similar a videojuegos pero buscando en carpeta consolas).
+            $filename = isset($p['imagen']) && trim($p['imagen']) !== '' ? basename($p['imagen']) : '';
+
+            if ($filename !== '') {
+              $img_path = "css/img/consolas/{$filename}";
+              // Verificación de existencia del archivo.
+              if (!file_exists(__DIR__ . '/' . $img_path)) {
+                if (isset($_GET['debug'])) {
+                  echo "<p style='color:orange'>Aviso: imagen no encontrada: " . htmlspecialchars($img_path) . "</p>";
+                }
+                $img_path = 'css/img/nintendogs.jpg'; // Imagen fallback (puede que quieras cambiarla a una genérica de consola)
+              }
+            } else {
               $img_path = 'css/img/nintendogs.jpg';
             }
-          } else {
-            $img_path = 'css/img/nintendogs.jpg';
+
+            // Renderizar HTML.
+            echo "<article>";
+            echo "<img src=\"{$img_path}\" alt=\"" . htmlspecialchars($p['titulo']) . "\">";
+            echo "<h3>" . htmlspecialchars($p['titulo']) . "</h3>";
+            echo "<h4>Disponibilidad</h4>";
+            echo "<p>" . htmlspecialchars($p['precio']) . " por semana</p>";
+            // Botón 'Añadir al carrito'.
+            echo '<a href="#" class="add-to-cart" data-id="' . htmlspecialchars($p['id'], ENT_QUOTES) . '" data-title="' . htmlspecialchars($p['titulo'], ENT_QUOTES) . '" data-price="' . htmlspecialchars($p['precio'], ENT_QUOTES) . '" data-img="' . htmlspecialchars($img_path, ENT_QUOTES) . '">Añadir al carrito</a>';
+            echo "</article>";
           }
-          echo "<article>";
-          echo "<img src=\"{$img_path}\" alt=\"" . htmlspecialchars($p['titulo']) . "\">";
-          echo "<h3>" . htmlspecialchars($p['titulo']) . "</h3>";
-          echo "<h4>Disponibilidad</h4>";
-          echo "<p>" . htmlspecialchars($p['precio']) . " por semana</p>";
-          echo '<a href="#" class="add-to-cart" data-id="' . htmlspecialchars($p['id'], ENT_QUOTES) . '" data-title="' . htmlspecialchars($p['titulo'], ENT_QUOTES) . '" data-price="' . htmlspecialchars($p['precio'], ENT_QUOTES) . '" data-img="' . htmlspecialchars($img_path, ENT_QUOTES) . '">Añadir al carrito</a>';
-          echo "</article>";
         }
-      }
-      ?>
+        ?>
     </section>
   </main>
 

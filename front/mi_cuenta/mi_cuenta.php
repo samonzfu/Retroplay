@@ -1,25 +1,64 @@
 <?php
+// Iniciar el manejo de sesiones. Esto es necesario para acceder a las variables $_SESSION.
 session_start();
+
+// Verificar si el usuario NO ha iniciado sesión comprobando si 'user_id' no existe.
 if (!isset($_SESSION['user_id'])) {
+  // Si no hay sesión activa, redirigir al usuario al formulario de login.
   header('Location: ../login/login.html');
+  // Detener la ejecución del script para evitar que se cargue el resto de la página.
   exit;
 }
+
+// Incluir el archivo de conexión a la base de datos.
 include '../../back/Conexion_BD/conexion.php';
 
+// Obtener el ID del usuario desde la sesión actual.
 $id = $_SESSION['user_id'];
-$stmt = $conexion->prepare("SELECT nickname, correo, telefono FROM usuarios WHERE id = ?");
-if ($stmt) {
-  $stmt->bind_param("i", $id);
-  $stmt->execute();
-  $res = $stmt->get_result();
-  $user = $res->fetch_assoc();
-  $stmt->close();
+
+// --- FORMA INSEGURA (Consulta Directa - Estilo Procedural) ---
+// Concatenamos la variable $id directamente. Estilo similar a procesar.php
+$sql = "SELECT nickname, correo, telefono FROM usuarios WHERE id = $id";
+$res = mysqli_query($conexion, $sql);
+
+if ($res && mysqli_num_rows($res) > 0) {
+  $user = mysqli_fetch_assoc($res);
 } else {
   $user = ['nickname' => '', 'correo' => '', 'telefono' => ''];
 }
+
+/*
+// --- FORMA SEGURA (Prepared Statement) [COMENTADA] ---
+// Esta es la forma recomendada usando consultas preparadas para evitar inyecciones SQL. 
+
+// Preparar una consulta segura (Prepared Statement) para obtener los datos del usuario.
+// Usar '?' evita inyecciones SQL.
+$stmt = $conexion->prepare("SELECT nickname, correo, telefono FROM usuarios WHERE id = ?");
+
+if ($stmt) {
+  // Enlazar el parámetro $id a la consulta (la 'i' indica que es un entero).
+  $stmt->bind_param("i", $id);
+
+  // Ejecutar la consulta.
+  $stmt->execute();
+
+  // Obtener el resultado de la consulta.
+  $res = $stmt->get_result();
+
+  // Obtener los datos del usuario como un array asociativo.
+  $user = $res->fetch_assoc();
+
+  // Cerrar la sentencia preparada para liberar recursos.
+  $stmt->close();
+} else {
+  // Si falla la preparación, inicializar $user vacío para evitar errores posteriores.
+  $user = ['nickname' => '', 'correo' => '', 'telefono' => ''];
+}
+*/
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -71,4 +110,5 @@ if ($stmt) {
 
   </main>
 </body>
+
 </html>
