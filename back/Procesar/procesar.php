@@ -1,32 +1,16 @@
 <?php
-
-// ------------------------------------------------------------------------------------------------
-// CONFIGURACIÓN DE ERRORES
-// ------------------------------------------------------------------------------------------------
-// Estas líneas permiten ver los errores de PHP en pantalla. 
-// Es útil desactivarlas (comentarlas) cuando la web ya está en producción para que los usuarios no vean mensajes técnicos.
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
-// error_reporting(E_ALL);
-
-// ------------------------------------------------------------------------------------------------
 // CONEXIÓN A LA BASE DE DATOS
-// ------------------------------------------------------------------------------------------------
 // Incluimos el archivo que contiene la configuración para conectarse a la base de datos (host, usuario, contraseña, nombre BD).
 include '../Conexion_BD/conexion.php';
 
-// ------------------------------------------------------------------------------------------------
 // VERIFICACIÓN DE DATOS RECIBIDOS
-// ------------------------------------------------------------------------------------------------
 // Comprobamos si el formulario nos ha enviado un campo llamado 'accion' (hidden input) para saber qué hacer.
 if (isset($_POST['accion'])) {
 
     // Guardamos la acción en una variable para usarla más fácilmente.
     $accion = $_POST['accion'];
 
-    // --------------------------------------------------------------------------------------------
     // PROCESO DE REGISTRO
-    // --------------------------------------------------------------------------------------------
     // Si la acción es 'registro', entramos en este bloque.
     if ($accion == 'registro') {
 
@@ -52,9 +36,7 @@ if (isset($_POST['accion'])) {
             echo "Error al preparar la consulta: " . htmlspecialchars($conexion->error);
         }
 
-        // --------------------------------------------------------------------------------------------
         // PROCESO DE LOGIN
-        // --------------------------------------------------------------------------------------------
         // Si la acción es 'login', entramos en este otro bloque.
     } elseif ($accion == 'login') {
 
@@ -165,9 +147,7 @@ if (isset($_POST['accion'])) {
     }
 
 } else {
-    // --------------------------------------------------------------------------------------------
     // CASO DE ERROR: PARAMETROS FALTANTES
-    // --------------------------------------------------------------------------------------------
     // Si alguien intenta entrar a este archivo directamente sin enviar datos POST.
     echo "Faltan parámetros.";
 }

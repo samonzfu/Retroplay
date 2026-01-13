@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS producto (
   titulo VARCHAR(255),
   descripcion VARCHAR(255),
   precio VARCHAR(255),
-  imagen VARCHAR(255), -- HE AÑADIDO LO DE LAS IMÁGENES
+  imagen VARCHAR(255), 
   PRIMARY KEY (id)
 );
 
