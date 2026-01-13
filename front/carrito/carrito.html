@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,144 +9,183 @@
 </head>
 
 <body>
+  <!-- BARRA DE NAVEGACIÓN -->
   <nav>
+    <!-- Ir a Inicio (Productos) -->
     <a href="../inicio/inicio.php">
       <img src="css/img/productos.png" alt="Acceso a mi cuenta">
     </a>
+    <!-- Ir a Mi Cuenta -->
     <a href="../mi_cuenta/mi_cuenta.php">
       <img src="css/img/mi_cuenta.png" alt="Acceso a mi cuenta">
     </a>
+    <!-- Ir a Mis Reservas -->
     <a href="../mis_reservas/reservas.html">
       <img src="css/img/reservas.png" alt="Ver reservas">
     </a>
+    <!-- Ir al Carrito (Página actual) -->
     <a href="../carrito/carrito.html">
       <img src="css/img/carrito.png" alt="Ver carrito de compras">
     </a>
   </nav>
 
+  <!-- CONTENIDO PRINCIPAL -->
   <main>
     <h2>Artículos en tu carrito</h2>
+
+    <!-- SECCIÓN DE LISTA DE PRODUCTOS -->
+    <!-- Aquí se inyectarán los productos desde JavaScript -->
     <section id="lista-carrito">
       <!-- Los artículos del carrito se renderizan aquí -->
     </section>
 
+    <!-- SECCIÓN DE RESUMEN Y PAGO -->
     <h2>Resumen del pedido</h2>
     <section id="resumen-pago">
       <article>
-        <img src="css/img/carrito.png" alt="Total" style="opacity: 0.5;"> 
+        <img src="css/img/carrito.png" alt="Total" style="opacity: 0.5;">
         <h3>Total a pagar</h3>
         <h4>Incluye impuestos</h4>
+        <!-- El total se actualiza vía JavaScript -->
         <p id="total" style="font-size: 1.2rem;">0.00 €</p>
+        <!-- Botón que abre el modal de confirmación -->
         <button id="btn-proceder">Proceder al pago</button>
       </article>
     </section>
 
   </main>
 
-  <!-- Modal para confirmar la reserva -->
-  <div id="modal-compra" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
-    <div style="background:#fff; padding:20px; border-radius:8px; max-width:90%; text-align:center; margin:auto;">
-      <p style="font-size:1.1rem; margin-bottom:1rem;"><strong>Pásate por la tienda física para pagar y recoger tu reserva.</strong></p>
-      <div style="display:flex; gap:8px; justify-content:center;">
-        <button id="modal-compra-confirm">Confirmar reserva</button>
-        <button id="modal-compra-cancel">Cancelar</button>
-      </div>
-    </div>
-  </div>
+
 
   <script>
-  function formatCurrency(n){ return n.toFixed(2) + ' €'; }
-  function showToast(msg){
-    var existing = document.getElementById('copilot-toast');
-    if (existing){ clearTimeout(existing._timeout); existing.remove(); }
-    var d = document.createElement('div'); d.id = 'copilot-toast'; d.textContent = msg;
-    d.style.position = 'fixed'; d.style.right = '20px'; d.style.top = '20px'; d.style.background = '#333'; d.style.color = '#fff'; d.style.padding = '10px 14px'; d.style.borderRadius = '6px'; d.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)'; d.style.zIndex = 9999; d.style.opacity = 1; d.style.transition = 'opacity 0.3s';
-    document.body.appendChild(d);
-    d._timeout = setTimeout(function(){ d.style.opacity = '0'; setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); }, 300); }, 2000);
-  }
+    // Al cargar la página, mostramos el carrito y configuramos el botón
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCart();
+      // Asignar la función de comprar al botón directamente
+      document.getElementById('btn-proceder').onclick = checkout;
+    });
 
-  function addDays(date, days){ var d = new Date(date); d.setDate(d.getDate() + days); return d; }
-
-  function renderCart(){
-    var list = document.getElementById('lista-carrito');
-    var cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    list.innerHTML = '';
-    if (!cart.length){
-      list.innerHTML = '<p>Tu carrito está vacío.</p>';
-      return updateSummary();
+    /**
+     * Muestra un mensaje flotante (toast) en la pantalla
+     */
+    function showToast(msg) {
+      var existing = document.getElementById('copilot-toast');
+      if (existing) { clearTimeout(existing._timeout); existing.remove(); }
+      var d = document.createElement('div'); d.id = 'copilot-toast'; d.textContent = msg;
+      d.style.position = 'fixed'; d.style.right = '20px'; d.style.top = '20px'; d.style.background = '#333'; d.style.color = '#fff'; d.style.padding = '10px 14px'; d.style.borderRadius = '6px'; d.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)'; d.style.zIndex = 9999; d.style.opacity = 1; d.style.transition = 'opacity 0.3s';
+      document.body.appendChild(d);
+      d._timeout = setTimeout(function () { d.style.opacity = '0'; setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); }, 300); }, 2000);
     }
-    cart.forEach(function(item){
-      var article = document.createElement('article');
-      var img = document.createElement('img'); img.src = item.img || 'css/img/nintendogs.jpg'; img.alt = item.title;
-      var h3 = document.createElement('h3'); h3.textContent = item.title;
-      var h4 = document.createElement('h4'); h4.textContent = (item.qty || 1) + ' semana(s)';
-      var p = document.createElement('p'); p.textContent = formatCurrency((item.price||0) * (item.qty||1));
-      var a = document.createElement('a'); a.href = '#'; a.textContent = 'Eliminar'; a.dataset.id = item.id;
-      a.addEventListener('click', function(e){ e.preventDefault(); removeFromCart(item.id); });
-      article.appendChild(img); article.appendChild(h3); article.appendChild(h4); article.appendChild(p); article.appendChild(a);
-      list.appendChild(article);
-    });
-    updateSummary();
-  }
 
-  function updateSummary(){
-    var cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    var total = cart.reduce(function(sum, it){ return sum + ((it.price||0) * (it.qty||1)); }, 0);
-    document.getElementById('total').textContent = formatCurrency(total);
-  }
+    /**
+     * Dibuja los productos usuando texto HTML simple (Template Strings).
+     * Es menos seguro (posible XSS si los datos vinieran de otros usuarios),
+     * pero mucho más corto y fácil de leer.
+     */
+    function renderCart() {
+      const list = document.getElementById('lista-carrito');
+      const totalDisplay = document.getElementById('total');
 
-  function removeFromCart(id){
-    var cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    cart = cart.filter(function(it){ return it.id !== id; });
-    localStorage.setItem('cart', JSON.stringify(cart));
-    renderCart();
-  }
+      // Leemos el carrito o usamos una lista vacía
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
-  function confirmReservation(){
-    var cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    if (!cart.length){ showToast('El carrito está vacío'); document.getElementById('modal-compra').style.display = 'none'; return; }
-    var reservas = JSON.parse(localStorage.getItem('reservas') || '[]');
-    var now = new Date();
-    cart.forEach(function(item){
-      var reservedAt = new Date();
-      var returnDate = addDays(reservedAt, (item.qty || 1) * 7);
-      reservas.push({
-        reservationId: Date.now() + '-' + Math.floor(Math.random()*100000),
-        prodId: item.id,
-        title: item.title,
-        price: item.price,
-        img: item.img,
-        qty: item.qty || 1,
-        reservedAt: reservedAt.toISOString(),
-        returnDate: returnDate.toISOString()
+      // 1. Si está vacío
+      if (cart.length === 0) {
+        list.innerHTML = '<p>Tu carrito está vacío.</p>';
+        totalDisplay.textContent = '0.00 €';
+        return;
+      }
+
+      // 2. Si hay productos, construimos todo el HTML en una variable de texto
+      let html = '';
+      let total = 0;
+
+      cart.forEach(item => {
+        const qty = item.qty || 1;
+        const price = item.price || 0;
+        const subtotal = price * qty;
+        total += subtotal;
+
+        // Añadimos el bloque HTML de este producto
+        // Usamos comillas invertidas (``) para poder meter variables dentro con ${}
+        html += `
+          <article>
+            <img src="${item.img || 'css/img/nintendogs.jpg'}" alt="${item.title}">
+            <h3>${item.title}</h3>
+            <h4>${qty} semana(s)</h4>
+            <p>${subtotal.toFixed(2)} €</p>
+            <!-- Al hacer click, llamamos a removeFromCart con el ID -->
+            <a href="#" onclick="removeFromCart('${item.id}'); return false;">Eliminar</a>
+          </article>
+        `;
       });
-    });
-    localStorage.setItem('reservas', JSON.stringify(reservas));
-    // Vaciar carrito
-    localStorage.setItem('cart', JSON.stringify([]));
-    renderCart();
-    document.getElementById('modal-compra').style.display = 'none';
-    var count = cart.length;
-    showToast('Reserva registrada (' + count + ' artículo' + (count!==1 ? 's' : '') + ')');
-    console.log('Reservas guardadas:', reservas);
-    // Redirigir a Mis Reservas para que el usuario vea sus reservas (añadimos un flag para confirmación)
-    setTimeout(function(){ window.location.href = '../mis_reservas/reservas.html?reserved=1'; }, 800);
-  }
 
-  document.addEventListener('DOMContentLoaded', function(){
-    var btn = document.getElementById('btn-proceder');
-    if (btn) btn.addEventListener('click', function(){
-      var cart = JSON.parse(localStorage.getItem('cart') || '[]');
-      if (!cart.length){ showToast('El carrito está vacío'); return; }
-      document.getElementById('modal-compra').style.display = 'flex';
-    });
-    var ok = document.getElementById('modal-compra-confirm');
-    if (ok) ok.addEventListener('click', function(){ confirmReservation(); });
-    var cancel = document.getElementById('modal-compra-cancel');
-    if (cancel) cancel.addEventListener('click', function(){ document.getElementById('modal-compra').style.display = 'none'; });
-    renderCart();
-  });
+      // 3. Escribimos el HTML y actualizamos el total
+      list.innerHTML = html;
+      totalDisplay.textContent = total.toFixed(2) + ' €';
+    }
+
+    // Eliminar producto por ID
+    function removeFromCart(id) {
+      let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      // Filtramos: nos quedamos con todos los que NO sean este ID
+      cart = cart.filter(item => item.id != id);
+      // Guardamos y repintamos
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCart();
+    }
+
+    // Función simple de compra
+    function checkout() {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+
+      if (cart.length === 0) {
+        showToast('El carrito está vacío');
+        return;
+      }
+
+      // Usamos el confirm() nativo del navegador para la confirmación crítica
+      if (!confirm(`¿Confirmar reserva de ${cart.length} productos por el total indicado?`)) {
+        return;
+      }
+
+      // Procesar reservas (mover de carrito -> reservas)
+      const reservas = JSON.parse(localStorage.getItem('reservas') || '[]');
+      const now = new Date();
+
+      cart.forEach(item => {
+        // Calcular fecha devolución (simple)
+        const returnDate = new Date();
+        returnDate.setDate(now.getDate() + (item.qty || 1) * 7);
+
+        reservas.push({
+          reservationId: Date.now(), // ID simple usando el tiempo actual
+          prodId: item.id,
+          title: item.title,
+          price: item.price,
+          img: item.img,
+          qty: item.qty || 1,
+          reservedAt: now.toISOString(),
+          returnDate: returnDate.toISOString()
+        });
+      });
+
+      // Guardar reservas
+      localStorage.setItem('reservas', JSON.stringify(reservas));
+
+      // Vaciar carrito
+      localStorage.setItem('cart', '[]');
+      renderCart(); // Actualizamos la vista para que se vea vacío
+
+      showToast('¡Reserva realizada con éxito! Redirigiendo...');
+
+      // Redirigir después de un pequeño retraso para ver el mensaje
+      setTimeout(() => {
+        window.location.href = '../mis_reservas/reservas.html';
+      }, 1500);
+    }
   </script>
 
 </body>
+
 </html>
