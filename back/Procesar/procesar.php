@@ -32,28 +32,24 @@ if (isset($_POST['accion'])) {
 
         // Recogemos los datos enviados desde el formulario de registro.
         $nickname = $_POST['nickname'];
-        $contrasena = $_POST['contrasena']; // Nota: Idealmente las contraseñas deberían cifrarse (ej. password_hash).
+        $contrasena = password_hash($_POST['contrasena'], PASSWORD_DEFAULT);
         $correo = $_POST['correo'];
         $telefono = $_POST['telefono'];
 
-        // Preparamos la consulta SQL para guardar al nuevo usuario.
-        // INSERT INTO tabla (columnas) VALUES (valores)
-        // No necesitamos pasar el 'id' porque en la base de datos es AUTO_INCREMENT (se crea solo).
-        $sql = "INSERT INTO usuarios (nickname, correo, telefono, contrasena) 
-                VALUES ('$nickname', '$correo', '$telefono', '$contrasena')";
-
-        // Ejecutamos la consulta contra la base de datos.
-        if (mysqli_query($conexion, $sql)) {
-            // SI TIENE ÉXITO:
-            // Mostramos una alerta JS y redirigimos al usuario a la página de login.
-            echo "<script>
-                    alert('Registro exitoso.');
-                    window.location.href = '../../front/login/login.html';
-                  </script>";
+        // Usar prepared statement para insertar de forma segura.
+        $stmt = $conexion->prepare("INSERT INTO usuarios (nickname, correo, telefono, contrasena) VALUES (?, ?, ?, ?)");
+        if ($stmt) {
+            $stmt->bind_param("ssss", $nickname, $correo, $telefono, $contrasena);
+            if ($stmt->execute()) {
+                // Registro exitoso — redirigir al login.
+                header('Location: ../../front/login/login.html');
+                exit;
+            } else {
+                echo "Error al registrar: " . htmlspecialchars($stmt->error);
+            }
+            $stmt->close();
         } else {
-            // SI FALLA:
-            // Mostramos el error que nos devuelve MySQL.
-            echo "Error al registrar: " . mysqli_error($conexion);
+            echo "Error al preparar la consulta: " . htmlspecialchars($conexion->error);
         }
 
         // --------------------------------------------------------------------------------------------
@@ -66,33 +62,107 @@ if (isset($_POST['accion'])) {
         $nickname = $_POST['nickname'];
         $contrasena = $_POST['contrasena'];
 
-        // Preparamos la consulta SQL para buscar un usuario que coincida con el nombre Y la contraseña.
-        $sql = "SELECT * FROM usuarios WHERE nickname = '$nickname' AND contrasena = '$contrasena'";
-
-        // Ejecutamos la consulta.
-        $resultado = mysqli_query($conexion, $sql);
-
-        // Verificamos si la base de datos devolvió al menos una fila (significa que encontró al usuario).
-        if (mysqli_num_rows($resultado) > 0) {
-            // SI EXISTE EL USUARIO:
-            // Obtenemos los datos del usuario en un array asociativo ($row).
-            $row = mysqli_fetch_assoc($resultado);
-
-            // Le damos la bienvenida y lo redirigimos (por ahora, al mismo login o dashboard).
-            echo "<script>
-                    alert('¡Bienvenido, " . $row['nickname'] . "!');
-                    window.location.href = '../../front/inicio/inicio.php';
-                  </script>";
+        // Buscar usuario por nickname y comprobar contraseña con password_verify().
+        $stmt = $conexion->prepare("SELECT id, nickname, contrasena FROM usuarios WHERE nickname = ?");
+        if ($stmt) {
+            $stmt->bind_param("s", $nickname);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            if ($res && $res->num_rows > 0) {
+                $row = $res->fetch_assoc();
+                if (password_verify($contrasena, $row['contrasena'])) {
+                    session_start();
+                    $_SESSION['user_id'] = $row['id'];
+                    $_SESSION['nickname'] = $row['nickname'];
+                    $_SESSION['flash'] = "¡Bienvenido, " . $row['nickname'] . "!";
+                    header('Location: ../../front/inicio/inicio.php');
+                    exit;
+                } else {
+                    echo "<script>alert('Usuario o contraseña incorrectos.'); window.history.back();</script>";
+                }
+            } else {
+                echo "<script>alert('Usuario o contraseña incorrectos.'); window.history.back();</script>";
+            }
+            $stmt->close();
         } else {
-            // SI NO EXISTE O CONTRASEÑA INCORRECTA:
-            // Mandamos una alerta y usamos history.back() para que vuelva al formulario.
-            echo "<script>
-                    alert('Usuario o contraseña incorrectos.');
-                    window.history.back();
-                  </script>";
+            echo "Error en el servidor. Inténtalo más tarde.";
         }
     }
 
+    // NUEVA ACCIÓN: CREAR RESERVA (ENVÍO DESDE EL FRONTEND)
+    elseif ($accion == 'create_reserva') {
+        // Devolver JSON
+        header('Content-Type: application/json');
+
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            echo json_encode(['success' => false, 'error' => 'No autenticado']);
+            exit;
+        }
+
+        $usuario_id = intval($_SESSION['user_id']);
+        $reservas_json = isset($_POST['reservas']) ? $_POST['reservas'] : '[]';
+        $items = json_decode($reservas_json, true);
+
+        if (!is_array($items) || count($items) === 0) {
+            echo json_encode(['success' => false, 'error' => 'Sin artículos para reservar']);
+            exit;
+        }
+
+        // Transacción para insertar reserva y sus líneas
+        mysqli_begin_transaction($conexion);
+        try {
+            $fecha = date('Y-m-d H:i:s');
+
+            $stmt = $conexion->prepare("INSERT INTO reservas (fecha, usuario_id) VALUES (?, ?)");
+            if (!$stmt) throw new Exception($conexion->error);
+            $stmt->bind_param("si", $fecha, $usuario_id);
+            if (!$stmt->execute()) throw new Exception($stmt->error);
+            $reserva_id = $conexion->insert_id;
+            $stmt->close();
+
+            $stmt2 = $conexion->prepare("INSERT INTO lineareservas (reservas_id, producto_id) VALUES (?, ?)");
+            if (!$stmt2) throw new Exception($conexion->error);
+
+            foreach ($items as $it) {
+                $pid = isset($it['id']) ? intval($it['id']) : 0;
+                if ($pid <= 0) continue;
+                $stmt2->bind_param("ii", $reserva_id, $pid);
+                if (!$stmt2->execute()) throw new Exception($stmt2->error);
+            }
+            $stmt2->close();
+
+            mysqli_commit($conexion);
+
+            // Limpiar carrito si existe en la sesión
+            session_start();
+            if (isset($_SESSION['cart'])) {
+                $_SESSION['cart'] = [];
+            }
+
+            echo json_encode(['success' => true, 'reserva_id' => $reserva_id]);
+            exit;
+        } catch (Exception $e) {
+            mysqli_rollback($conexion);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
+        }
+    }
+
+    // ACCIÓN: ACTUALIZAR CARRITO EN LA SESIÓN
+    elseif ($accion == 'update_cart') {
+        header('Content-Type: application/json');
+        session_start();
+        $cart_json = isset($_POST['cart']) ? $_POST['cart'] : '[]';
+        $cart = json_decode($cart_json, true);
+        if (!is_array($cart)) {
+            echo json_encode(['success' => false, 'error' => 'Formato de carrito no válido']);
+            exit;
+        }
+        $_SESSION['cart'] = $cart;
+        echo json_encode(['success' => true]);
+        exit;
+    }
 
 } else {
     // --------------------------------------------------------------------------------------------

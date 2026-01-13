@@ -1,25 +1,18 @@
 <?php
+session_start();
 // Incluir el archivo de conexión a la base de datos.
 include '../../back/Conexion_BD/conexion.php';
 
-// ------------------------------------------------------------------------------------------------
-// CONFIGURACIÓN DE DEPURACIÓN
-// ------------------------------------------------------------------------------------------------
-// Activa la visualización de errores si se pasa el parámetro ?debug=1 en la URL.
-// Esto es útil para desarrollo, pero debe estar desactivado en producción.
-/*if (isset($_GET['debug'])) {
-  ini_set('display_errors', 1);
-  ini_set('display_startup_errors', 1);
-  error_reporting(E_ALL);
+// Capturar mensaje flash (si existe) y eliminarlo de la sesión.
+$flash = '';
+if (isset($_SESSION['flash'])) {
+  $flash = $_SESSION['flash'];
+  unset($_SESSION['flash']);
 }
-*/
 
-// ------------------------------------------------------------------------------------------------
 // VERIFICACIÓN DE CONEXIÓN
-// ------------------------------------------------------------------------------------------------
 // Verificamos si la variable $conexion existe y es válida.
 if (!isset($conexion) || !$conexion) {
-  echo '<!DOCTYPE html><html><body>';
   echo '<h2 style="color:red">Error: no se pudo conectar a la base de datos.</h2>';
   // Si el modo debug está activo, mostramos el error específico de MySQL.
   if (isset($_GET['debug'])) {
@@ -41,7 +34,7 @@ if (!isset($conexion) || !$conexion) {
 </head>
 
 <body>
-  <!-- Navegación superior -->
+  <!-- Navegación -->
   <nav>
     <a href="../inicio/inicio.php">
       <img src="css/img/productos.png" alt="Acceso a mi cuenta">
@@ -49,22 +42,22 @@ if (!isset($conexion) || !$conexion) {
     <a href="../mi_cuenta/mi_cuenta.php">
       <img src="css/img/mi_cuenta.png" alt="Acceso a mi cuenta">
     </a>
-    <a href="../mis_reservas/reservas.html">
+    <a href="../mis_reservas/reservas.php">
       <img src="css/img/reservas.png" alt="Ver reservas">
     </a>
-    <a href="../carrito/carrito.html">
+    <a href="../carrito/carrito.php">
       <img src="css/img/carrito.png" alt="Ver carrito de compras">
     </a>
   </nav>
+
+  <?php if (!empty($flash)) { echo "<div id='flash' style='position:fixed;right:20px;top:20px;background:#333;color:#fff;padding:10px;border-radius:6px;z-index:9999'>" . htmlspecialchars($flash) . "</div><script>setTimeout(()=>{var e=document.getElementById('flash'); if(e) e.remove();},2000);</script>"; } ?>
 
   <!-- Contenido principal -->
   <main>
     <h2>Videojuegos</h2>
     <section id="videojuegos">
       <?php
-      // ------------------------------------------------------------------------------------------------
       // SECCIÓN DE VIDEOJUEGOS
-      // ------------------------------------------------------------------------------------------------
       
       // Consulta SQL para seleccionar todos los productos donde la categoría sea 'videojuego'.
       // LOWER() convierte la categoría a minúsculas para evitar problemas de mayúsculas/minúsculas.
@@ -126,10 +119,9 @@ if (!isset($conexion) || !$conexion) {
     <h2>Consolas</h2>
     <section id="consolas">
       <?php
-      // ------------------------------------------------------------------------------------------------
+
       // SECCIÓN DE CONSOLAS
-      // ------------------------------------------------------------------------------------------------
-      
+
       // Consulta SQL para seleccionar consolas.
       $sql_c = "SELECT * FROM producto WHERE LOWER(categoria) = 'consola'";
 

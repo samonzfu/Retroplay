@@ -13,48 +13,17 @@ if (!isset($_SESSION['user_id'])) {
 // Incluir el archivo de conexión a la base de datos.
 include '../../back/Conexion_BD/conexion.php';
 
-// Obtener el ID del usuario desde la sesión actual.
-$id = $_SESSION['user_id'];
+// Obtener id del usuario desde la sesión (como entero)
+$id = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
 
-// --- FORMA INSEGURA (Consulta Directa - Estilo Procedural) ---
-// Concatenamos la variable $id directamente. Estilo similar a procesar.php
+// Consulta simple (estilo alumno)
 $sql = "SELECT nickname, correo, telefono FROM usuarios WHERE id = $id";
 $res = mysqli_query($conexion, $sql);
-
 if ($res && mysqli_num_rows($res) > 0) {
   $user = mysqli_fetch_assoc($res);
 } else {
   $user = ['nickname' => '', 'correo' => '', 'telefono' => ''];
 }
-
-/*
-// --- FORMA SEGURA (Prepared Statement) [COMENTADA] ---
-// Esta es la forma recomendada usando consultas preparadas para evitar inyecciones SQL. 
-
-// Preparar una consulta segura (Prepared Statement) para obtener los datos del usuario.
-// Usar '?' evita inyecciones SQL.
-$stmt = $conexion->prepare("SELECT nickname, correo, telefono FROM usuarios WHERE id = ?");
-
-if ($stmt) {
-  // Enlazar el parámetro $id a la consulta (la 'i' indica que es un entero).
-  $stmt->bind_param("i", $id);
-
-  // Ejecutar la consulta.
-  $stmt->execute();
-
-  // Obtener el resultado de la consulta.
-  $res = $stmt->get_result();
-
-  // Obtener los datos del usuario como un array asociativo.
-  $user = $res->fetch_assoc();
-
-  // Cerrar la sentencia preparada para liberar recursos.
-  $stmt->close();
-} else {
-  // Si falla la preparación, inicializar $user vacío para evitar errores posteriores.
-  $user = ['nickname' => '', 'correo' => '', 'telefono' => ''];
-}
-*/
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -74,10 +43,10 @@ if ($stmt) {
     <a href="../mi_cuenta/mi_cuenta.php">
       <img src="css/img/mi_cuenta.png" alt="Acceso a mi cuenta">
     </a>
-    <a href="../mis_reservas/reservas.html">
+    <a href="../mis_reservas/reservas.php">
       <img src="css/img/reservas.png" alt="Ver reservas">
     </a>
-    <a href="../carrito/carrito.html">
+    <a href="../carrito/carrito.php">
       <img src="css/img/carrito.png" alt="Ver carrito de compras">
     </a>
   </nav>
