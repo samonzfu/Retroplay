@@ -1,22 +1,18 @@
-/*FALTA AÑADIR:
--FUENTES TXT
--COLOR LETRA A MORADO
--BOTÓN DE SUBIR
-*/
-
-/*
-RECUERDA:
--Width
--Margin
--Padding
--Height
-*/
+@font-face {
+  font-family: "negrita";
+  src: url(../css/fonts/ari-w9500-bold.ttf);
+}
+@font-face {
+  font-family: "fina";
+  src: url(../css/fonts/ari-w9500.ttf);
+}
 
 /*Elimina los márgenes y rellenos por defecto*/
 html, body {
   width: 100%;/*Hace que la web ocupe  todo el ancho*/
   margin: 0;
   padding: 0;
+  font-family: "fina";
 }
 
 /* Estructura general */
@@ -24,7 +20,7 @@ body {
   flex-direction: column;
   min-height: 100vh;/*Obliga al cuerpo a medir el 100% de la altura de la ventana*/
 }
-h2{text-align: center;}
+h2{text-align: center;font-family: "negrita";}
 
 /* NAVEGACIÓN */
 nav {

@@ -1,18 +1,14 @@
 h1 {
     color: blue
 }
-
-/*No te ralles Piero, luego lo iremos dejando más bonico*/
-
-/*
-RECUERDA:
-- Height = alto
-- Width = ancho
-- Padding = relleno
-- Margin = margen
-- Gap = "hueco"
-*/
-
+@font-face {
+  font-family: "negrita"; /*Nombrar la fuente para usarla*/
+  src: url(../css/fonts/ari-w9500-bold.ttf);/*QUÉ fuente*/
+}
+@font-face {
+  font-family: "fina";
+  src: url(../css/fonts/ari-w9500.ttf);
+}
 /*--FUENTES DE TEXTO--*/
 @font-face {
     font-family: "titulo";

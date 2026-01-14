@@ -174,7 +174,7 @@ if (!isset($conexion) || !$conexion) {
 
   <script>
     // Añadir al carrito: guarda producto en localStorage y muestra notificación (sin redirigir)
-    function showToast(msg) {
+    function showToast(msg) {//mensaje flotante
       var existing = document.getElementById('copilot-toast');
       if (existing) { clearTimeout(existing._timeout); existing.remove(); }
       var d = document.createElement('div'); d.id = 'copilot-toast'; d.textContent = msg;
@@ -184,7 +184,7 @@ if (!isset($conexion) || !$conexion) {
     }
 
     document.addEventListener('click', function (e) {
-      if (e.target.matches('.add-to-cart')) {
+      if (e.target.matches('.add-to-cart')) {// si clicka en el carrito hace:
         e.preventDefault();
         var el = e.target;
         var product = {
