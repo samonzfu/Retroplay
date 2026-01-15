@@ -41,11 +41,21 @@ $res = mysqli_query($conexion, $sql);
           echo '<div class="items">';
 
           $rid = intval($r['id']);
-          $sql2 = "SELECT p.id, p.titulo, p.precio, p.imagen FROM lineareservas lr JOIN producto p ON lr.producto_id = p.id WHERE lr.reservas_id = $rid";
+          $sql2 = "SELECT p.id, p.titulo, p.precio, p.imagen, p.categoria FROM lineareservas lr JOIN producto p ON lr.producto_id = p.id WHERE lr.reservas_id = $rid";
           $res2 = mysqli_query($conexion, $sql2);
 
           while ($p = mysqli_fetch_assoc($res2)) {
-            $img = !empty($p['imagen']) ? 'css/img/videojuegos/' . htmlspecialchars(basename($p['imagen'])) : 'css/img/nintendogs.jpg';
+            $filename = isset($p['imagen']) && trim($p['imagen']) !== '' ? basename($p['imagen']) : '';
+            $categoria = isset($p['categoria']) ? strtolower(trim($p['categoria'])) : 'videojuego';
+            
+            if ($filename !== '') {
+              $folder = ($categoria === 'consola') ? 'consolas' : 'videojuegos';
+              $img = 'css/img/' . $folder . '/' . htmlspecialchars($filename);
+            } else {
+              $folder = ($categoria === 'consola') ? 'consolas' : 'videojuegos';
+              $img = 'css/img/' . $folder . '/nintendogs.jpg';
+            }
+            
             echo '<article><img src="' . $img . '" alt="' . htmlspecialchars($p['titulo']) . '"><h4>' . htmlspecialchars($p['titulo']) . '</h4><p>' . htmlspecialchars($p['precio']) . '</p></article>';
           }
 
