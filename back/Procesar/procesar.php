@@ -3,6 +3,9 @@
 // Incluimos el archivo que contiene la configuración para conectarse a la base de datos (host, usuario, contraseña, nombre BD).
 include '../Conexion_BD/conexion.php';
 
+// INCLUIMOS EL VALIDADOR DE CONTRASEÑAS
+include '../Validadores/validar_contrasena.php';
+
 // VERIFICACIÓN DE DATOS RECIBIDOS
 // Comprobamos si el formulario nos ha enviado un campo llamado 'accion' (hidden input) para saber qué hacer.
 if (isset($_POST['accion'])) {
@@ -16,9 +19,21 @@ if (isset($_POST['accion'])) {
 
         // Recogemos los datos enviados desde el formulario de registro.
         $nickname = $_POST['nickname'];
-        $contrasena = password_hash($_POST['contrasena'], PASSWORD_DEFAULT);
+        $contrasena_raw = $_POST['contrasena'];
         $correo = $_POST['correo'];
         $telefono = $_POST['telefono'];
+
+        // VALIDAR LA CONTRASEÑA
+        $validacion = validar_contrasena($contrasena_raw);
+        if (!$validacion['valida']) {
+            // Si la contraseña no es válida, devolvemos error con detalles
+            $errores = implode('\n', $validacion['errores']);
+            echo "<script>alert('Contraseña no segura:\\n\\n" . $errores . "'); window.history.back();</script>";
+            exit;
+        }
+
+        // Hashear la contraseña solo después de validarla
+        $contrasena = password_hash($contrasena_raw, PASSWORD_DEFAULT);
 
         // Usar prepared statement para insertar de forma segura.
         $stmt = $conexion->prepare("INSERT INTO usuarios (nickname, correo, telefono, contrasena) VALUES (?, ?, ?, ?)");
