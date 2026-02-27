@@ -110,3 +110,26 @@ INSERT INTO producto (categoria, titulo, descripcion, precio, imagen) VALUES
 ('Videojuego', 'New Super Mario Bros', 'Regreso a las raíces en la DS.', '5€', 'new_mario_ds.jpg'),
 ('Videojuego', 'Nintendogs', 'Simulador de mascotas virtual.', '5€', 'nintendogs.jpg'),
 ('Videojuego', 'Mario Kart DS', 'Carreras portátiles con modo online.', '5€', 'mariokart_ds.jpg');
+
+
+-- CREAR USUARIO para infinity free:
+CREATE USER 
+'if0_36418436'@'%' 
+IDENTIFIED  BY 'Retroplay123$';
+
+GRANT USAGE ON *.* TO 'if0_36418436'@'%';
+
+
+ALTER USER 'if0_36418436'@'%' 
+REQUIRE NONE 
+WITH MAX_QUERIES_PER_HOUR 0 
+MAX_CONNECTIONS_PER_HOUR 0 
+MAX_UPDATES_PER_HOUR 0 
+MAX_USER_CONNECTIONS 0;
+
+-- dale acceso a la base de datos retroplay
+GRANT ALL PRIVILEGES ON retroplay.* 
+TO 'if0_36418436'@'%';
+
+-- recarga la tabla de privilegios
+FLUSH PRIVILEGES;
