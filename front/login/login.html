@@ -1,32 +1,64 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogIn | RetroPlay</title>
-    <link rel="stylesheet" href="css/estilo.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión | RetroPlay</title>
+  <script>
+    try { document.documentElement.setAttribute('data-theme', localStorage.getItem('retroplay_theme') || 'dark'); } catch (e) { }
+  </script>
+  <link rel="stylesheet" href="../assets/css/retroplay.css">
 </head>
 
-<body>
-    <h1>RetroPlay</h1>
-    <div class="formulario">
-        <h2>Inicio de sesión</h2>
-        <form method="post" action="../../back/Procesar/procesar.php">
-            <!--Al tener "campo" en común se puede aplicar el css a ambas-->
-            <div class="usuario campo">
-                <input type="text" name="nickname" placeholder="Usuario" required>
-            </div>
-            <div class="contrasena campo">
-                <input type="password" name="contrasena" placeholder="Contraseña" required>
-            </div>
-            <input type="hidden" name="accion" value="login">
-            <input type="submit" value="Entrar">
-            <div class="recordar">¿No tienes cuenta?</div>
-            <div class="registrarse">
-                <!--Los dos puntos en la ruta es para que suba una carpeta(explicado con perplexity)-->
-                <a href="../registro/registro.html">Crear una cuenta</a>
-            </div>
-        </form>
+<body class="auth">
+  <div class="auth-box">
+    <a class="brand" href="../inicio/inicio.php" aria-label="RetroPlay, ir al catálogo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 11h4M8 9v4M15 12h.01M18 10h.01"/><path d="M17.3 5H6.7a4 4 0 0 0-4 3.6C2.6 9.4 2 14.5 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.4-1.4a2 2 0 0 1 1.4-.6h4.4a2 2 0 0 1 1.4.6L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.5-.6-6.6-.7-7.3A4 4 0 0 0 17.3 5z"/></svg>
+      <span>Retro<b>Play</b></span>
+    </a>
+
+    <div class="panel">
+      <h1>Iniciar sesión</h1>
+
+      <p class="alert success" id="msg-ok" role="status">¡Cuenta creada! Ya puedes entrar.</p>
+      <p class="alert" id="msg-error" role="alert" style="margin-bottom:16px"></p>
+
+      <form class="form" method="post" action="../../back/Procesar/procesar.php" id="form">
+        <label class="field">
+          <span>Usuario</span>
+          <input class="input" type="text" name="nickname" placeholder="Tu nombre de usuario" autocomplete="username" required autofocus>
+        </label>
+        <div class="field">
+          <label for="contrasena">Contraseña</label>
+          <div class="pw-wrap">
+            <input class="input" type="password" id="contrasena" name="contrasena" placeholder="Tu contraseña" autocomplete="current-password" required>
+            <button type="button" data-toggle-pw="contrasena" aria-label="Mostrar u ocultar contraseña"><span class="i-show"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="i-hide" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10.1 10.1 0 0 1 12 19c-6.5 0-10-7-10-7a18 18 0 0 1 5.1-5.9M9.9 5.2A9.7 9.7 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-2.2 3.2M1 1l22 22"/></svg></span></button>
+          </div>
+        </div>
+        <input type="hidden" name="accion" value="login">
+        <button class="btn btn-primary btn-block" type="submit">Entrar</button>
+      </form>
+
+      <p class="alt">¿No tienes cuenta? <a href="../registro/registro.html">Crear una cuenta</a></p>
+    </div>
+  </div>
+
+  <script src="../assets/js/password.js"></script>
+  <script>
+    // Mensajes que llegan desde procesar.php (?error=... / ?registrado=1)
+    var params = new URLSearchParams(location.search);
+    if (params.get('error')) {
+      var e = document.getElementById('msg-error');
+      e.textContent = params.get('error');
+      e.classList.add('show');
+    }
+    if (params.has('registrado')) document.getElementById('msg-ok').classList.add('show');
+
+    document.getElementById('form').addEventListener('submit', function () {
+      this.querySelector('[type=submit]').classList.add('loading');
+    });
+  </script>
 </body>
 
 </html>

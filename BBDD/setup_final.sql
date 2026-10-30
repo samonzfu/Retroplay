@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS reservas (
   id INT NOT NULL AUTO_INCREMENT,
   fecha VARCHAR(255),
   usuario_id INT,
+  total DECIMAL(8,2) NOT NULL DEFAULT 0,
   PRIMARY KEY (id),
   CONSTRAINT fk_reservas_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
@@ -39,6 +40,8 @@ CREATE TABLE IF NOT EXISTS lineareservas (
   id INT NOT NULL AUTO_INCREMENT,
   reservas_id INT,
   producto_id INT,
+  cantidad INT NOT NULL DEFAULT 1,
+  semanas INT NOT NULL DEFAULT 1,
   PRIMARY KEY (id),
   CONSTRAINT fk_lineareservas_reserva FOREIGN KEY (reservas_id) REFERENCES reservas(id),
   CONSTRAINT fk_lineareservas_producto FOREIGN KEY (producto_id) REFERENCES producto(id)

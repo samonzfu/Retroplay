@@ -1,131 +1,61 @@
 <?php
 session_start();
-// Cargamos el carrito de la sesión (si existe)
-$server_cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
+include '../includes/layout.php';
+
+// El contenido del carrito vive en el navegador (localStorage); aquí solo
+// necesitamos saber si hay sesión para permitir reservar.
+$logged = isset($_SESSION['user_id']);
+
+rp_header('Carrito', 'carrito');
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carrito | RetroPlay</title>
-  <link rel="stylesheet" href="css/estilo.css">
-</head>
 
-<body>
-    <!-- Navegación -->
-  <nav>
-    <a href="../inicio/inicio.php">
-      <img src="css/img/productos.png" alt="Acceso a mi cuenta">
-    </a>
-    <a href="../mi_cuenta/mi_cuenta.php">
-      <img src="css/img/mi_cuenta.png" alt="Acceso a mi cuenta">
-    </a>
-    <a href="../mis_reservas/reservas.php">
-      <img src="css/img/reservas.png" alt="Ver reservas">
-    </a>
-    <a href="../carrito/carrito.php">
-      <img src="css/img/carrito.png" alt="Ver carrito de compras">
-    </a>
-  </nav>
+<main class="container">
+  <h1 class="page-title px">Tu carrito <small id="cart-sub"></small></h1>
 
-  <main>
-    <!-- Contenido del carrito -->
-    <h2>Tu Carrito</h2>
-    <section id="cart-list"></section>
-    <div id="cart-footer"><strong>Total: <span id="total">0.00</span> €</strong> <button id="checkout">Reservar</button></div>
-  </main>
+  <div class="cart-layout" id="cart-layout" hidden>
+    <div class="cart-items" id="cart-list"></div>
+
+    <aside class="summary">
+      <h2 class="px">Resumen</h2>
+      <dl>
+        <div><dt>Artículos</dt><dd id="s-items">0</dd></div>
+        <div><dt>Consolas</dt><dd id="s-consolas">0,00 €</dd></div>
+        <div><dt>Videojuegos</dt><dd id="s-juegos">0,00 €</dd></div>
+      </dl>
+      <div class="total"><span>Total</span><strong id="total">0,00 €</strong></div>
+
+      <?php if ($logged): ?>
+        <button class="btn btn-primary btn-block" id="checkout" type="button">Reservar ahora</button>
+      <?php else: ?>
+        <a class="btn btn-primary btn-block" href="../login/login.html"><?= rp_icon('login') ?> Inicia sesión para reservar</a>
+        <p class="note">Tu carrito se guarda: podrás continuar después de entrar.</p>
+      <?php endif; ?>
+      <button class="btn btn-ghost btn-sm link-clear btn-danger" id="clear-cart" type="button">Vaciar carrito</button>
+    </aside>
+  </div>
+
+  <div class="empty" id="cart-empty" hidden>
+    <?= rp_icon('cart') ?>
+    <h2>Tu carrito está vacío</h2>
+    <p>Añade consolas y juegos desde el catálogo.</p>
+    <a class="btn btn-primary" href="../inicio/inicio.php">Ir al catálogo</a>
+  </div>
+</main>
+
+<!-- Confirmación de la reserva -->
+<dialog id="confirm-dialog" aria-labelledby="cd-title">
+  <div class="modal-body" id="cd-body">
+    <h2 id="cd-title">Confirmar reserva</h2>
+    <p class="muted" id="cd-text" style="margin:0"></p>
+    <div class="alert" id="cd-error" role="alert"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" type="button" id="cd-cancel">Cancelar</button>
+      <button class="btn btn-primary" type="button" id="cd-ok">Confirmar</button>
+    </div>
+  </div>
+</dialog>
 
 <script>
-var serverCart = <?php echo json_encode($server_cart, JSON_HEX_TAG); ?> || [];
-
-// Mostrar un mensaje simple en la esquina (toast)
-function showToast(msg){
-  var d = document.createElement('div');
-  d.id = 'copilot-toast';
-  d.textContent = msg;
-  d.style.position = 'fixed'; d.style.right = '20px'; d.style.top = '20px'; d.style.background = '#333'; d.style.color = '#fff'; d.style.padding = '10px 14px'; d.style.borderRadius = '6px'; d.style.zIndex = 9999;
-  document.body.appendChild(d);
-  setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 2000);
-}
-
-// Unir carrito local con carrito del servidor (suma cantidades)
-function mergeCarts(local, server){
-  var merged = [];
-  for (var i = 0; i < local.length; i++) {
-    merged.push({ id: local[i].id, title: local[i].title, price: local[i].price, img: local[i].img, qty: local[i].qty || 1 });
-  }
-  for (var j = 0; j < server.length; j++) {
-    var found = false;
-    for (var k = 0; k < merged.length; k++) {
-      if (merged[k].id == server[j].id) { merged[k].qty = (merged[k].qty || 1) + (server[j].qty || 1); found = true; break; }
-    }
-    if (!found) merged.push({ id: server[j].id, title: server[j].title, price: server[j].price, img: server[j].img, qty: server[j].qty || 1 });
-  }
-  return merged;
-}
-
-function renderCart(){
-  var list = document.getElementById('cart-list');
-  var cart = JSON.parse(localStorage.getItem('cart') || '[]');
-  if (!cart.length) { list.innerHTML = '<p>El carrito está vacío.</p>'; document.getElementById('total').textContent = '0.00'; return; }
-  var html = '';
-  var total = 0;
-  for (var i = 0; i < cart.length; i++) {
-    var item = cart[i];
-    var price = parseFloat(String(item.price || '').replace('€','').replace(',','.')) || 0;
-    total += price * (item.qty || 1);
-    html += '<article><img src="' + (item.img || 'css/img/nintendogs.jpg') + '" alt="' + (item.title||'') + '"><h3>' + (item.title||'') + '</h3><p>' + price + ' € — Cantidad: ' + (item.qty||1) + '</p><a href="#" data-id="' + item.id + '" class="remove">Eliminar</a></article>';
-  }
-  list.innerHTML = html;
-  document.getElementById('total').textContent = total.toFixed(2);
-}
-
-function updateCartServer(cart, cb){
-  var fd = new FormData(); fd.append('accion','update_cart'); fd.append('cart', JSON.stringify(cart));
-  fetch('../../back/Procesar/procesar.php', { method: 'POST', body: fd }).then(function(r){ return r.json(); }).then(function(res){ if (cb) cb(res); }).catch(function(){ if (cb) cb({ success: false }); });
-}
-
-// Eventos
-document.addEventListener('DOMContentLoaded', function(){
-  try {
-    var local = JSON.parse(localStorage.getItem('cart') || '[]');
-    var merged = mergeCarts(local, serverCart);
-    localStorage.setItem('cart', JSON.stringify(merged));
-    updateCartServer(merged, function(){ renderCart(); });
-  } catch(e) { renderCart(); }
-
-  document.body.addEventListener('click', function(e){
-    if (e.target && e.target.className === 'remove'){
-      e.preventDefault();
-      var id = e.target.getAttribute('data-id');
-      var cart = JSON.parse(localStorage.getItem('cart') || '[]');
-      var newCart = [];
-      for (var i = 0; i < cart.length; i++) { if (cart[i].id != id) newCart.push(cart[i]); }
-      localStorage.setItem('cart', JSON.stringify(newCart));
-      updateCartServer(newCart, function(){ renderCart(); showToast('Producto eliminado del carrito'); });
-    }
-  });
-
-  document.getElementById('checkout').addEventListener('click', function(){
-    var cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    if (!cart.length) { showToast('El carrito está vacío'); return; }
-    if (!confirm('¿Confirmar reserva de ' + cart.length + ' productos?')) return;
-
-    var items = [];
-    for (var i = 0; i < cart.length; i++) { items.push({ id: cart[i].id, qty: cart[i].qty || 1 }); }
-
-    var fd = new FormData(); fd.append('accion','create_reserva'); fd.append('reservas', JSON.stringify(items));
-    fetch('../../back/Procesar/procesar.php', { method: 'POST', body: fd }).then(function(r){ return r.json(); }).then(function(data){
-      if (data && data.success) {
-        localStorage.setItem('cart','[]');
-        updateCartServer([], function(){ showToast('¡Reserva registrada!'); setTimeout(function(){ window.location.href='../mis_reservas/reservas.php?reserved=1'; }, 900); });
-      } else { alert('Error al crear reserva: ' + (data && data.error ? data.error : 'Error desconocido')); }
-    }).catch(function(){ alert('Error de red. Inténtalo de nuevo.'); });
-
-  });
-});
+  window.RP_LOGGED = <?= $logged ? 'true' : 'false' ?>;
 </script>
-
-</body>
-</html>
+<?php rp_footer(['carrito.js']); ?>

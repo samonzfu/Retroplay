@@ -6,7 +6,9 @@ Retroplay is a web application for renting retro video game consoles and games. 
 
 - **Catalog Browser**: Browse a wide selection of retro consoles (Game Boy, NES, PlayStation, etc.) and video games.
 - **User Accounts**: Register and log in to manage your rentals.
-- **Shopping Cart**: Add items to your cart for rental.
+- **Shopping Cart**: Real cart with quantities, rental duration in weeks, per-line and total prices, persisted in the browser; checkout creates a reservation (prices are recomputed on the server).
+- **Search, filters and favourites**: Live search, category chips, sorting, product detail modal and favourites.
+- **Light / dark theme**, animations (add-to-cart fly effect, toasts, scroll reveal) and a "repeat reservation" button.
 - **Reservations**: Place rental orders and view your reservation history.
 - **Responsive Design**: Accessible on various devices.
 
@@ -18,6 +20,8 @@ The project is organized as follows:
   - `Conexion_BD/`: Database connection scripts.
   - `Procesar/`: Processing logic (e.g., form handling).
 - **`front/`**: Contains frontend pages and assets.
+  - `assets/`: Shared CSS (`css/retroplay.css`), JS (`js/`), fonts and product images.
+  - `includes/layout.php`: Shared header / navigation / footer.
   - `inicio/`: Main landing page and product catalog.
   - `login/`: User login page.
   - `registro/`: User registration page.
@@ -51,6 +55,8 @@ The project is organized as follows:
     -   Create a MySQL database (or let the script do it).
     -   Import the `BBDD/setup_final.sql` file into your MySQL server. This will create the `retroplay` database, tables, and insert sample data.
     -   The script creates a user `retroplay` with password `Retroplay123$`. If you wish to use different credentials, update `back/Conexion_BD/conexion.php`.
+
+    -   **Upgrading an existing database?** Run `BBDD/migracion_carrito.sql` instead (adds `cantidad`, `semanas` and `total` columns).
 
 3.  **Configuration**:
     -   Ensure your web server is configured to serve the project root.

@@ -10,74 +10,89 @@ if (!isset($_SESSION['user_id'])) {
   exit;
 }
 
-// Incluir el archivo de conexión a la base de datos.
+// Incluir el archivo de conexión a la base de datos y la plantilla.
 include '../../back/Conexion_BD/conexion.php';
+include '../includes/layout.php';
 
 // Obtener id del usuario desde la sesión (como entero)
-$id = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
+$id = intval($_SESSION['user_id']);
 
-// Consulta simple (estilo alumno)
-$sql = "SELECT nickname, correo, telefono FROM usuarios WHERE id = $id";
-$res = mysqli_query($conexion, $sql);
-if ($res && mysqli_num_rows($res) > 0) {
-  $user = mysqli_fetch_assoc($res);
-} else {
-  $user = ['nickname' => '', 'correo' => '', 'telefono' => ''];
-}
+$stmt = $conexion->prepare("SELECT nickname, correo, telefono FROM usuarios WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$user = $stmt->get_result()->fetch_assoc() ?: ['nickname' => '', 'correo' => '', 'telefono' => ''];
+$stmt->close();
+
+// Estadísticas rápidas
+$stmt = $conexion->prepare("SELECT COUNT(*) AS n FROM reservas WHERE usuario_id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$n_reservas = (int) $stmt->get_result()->fetch_assoc()['n'];
+$stmt->close();
+
+$inicial = mb_strtoupper(mb_substr($user['nickname'] !== '' ? $user['nickname'] : '?', 0, 1));
+
+rp_header('Mi cuenta', 'cuenta');
 ?>
-<!DOCTYPE html>
-<html lang="es">
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RetroPlay | Mi Cuenta</title>
-  <link rel="stylesheet" href="css/estilo.css">
-</head>
+<main class="container">
+  <h1 class="page-title px">Mi cuenta</h1>
 
-<body>
-  <nav>
-    <a href="../inicio/inicio.php">
-      <img src="css/img/productos.png" alt="Acceso a mi cuenta">
-    </a>
-    <a href="../mi_cuenta/mi_cuenta.php">
-      <img src="css/img/mi_cuenta.png" alt="Acceso a mi cuenta">
-    </a>
-    <a href="../mis_reservas/reservas.php">
-      <img src="css/img/reservas.png" alt="Ver reservas">
-    </a>
-    <a href="../carrito/carrito.php">
-      <img src="css/img/carrito.png" alt="Ver carrito de compras">
-    </a>
-  </nav>
+  <div class="account">
+    <aside class="panel profile reveal">
+      <div class="avatar"><?= htmlspecialchars($inicial) ?></div>
+      <h2><?= htmlspecialchars($user['nickname']) ?></h2>
+      <p class="muted" style="margin:0"><?= htmlspecialchars($user['correo']) ?></p>
+      <div class="mini-stats">
+        <div><strong><?= $n_reservas ?></strong><span>Reservas</span></div>
+        <div><strong id="stat-cart">0</strong><span>En el carrito</span></div>
+      </div>
+      <a class="btn btn-block" href="../mis_reservas/reservas.php"><?= rp_icon('calendar') ?> Ver mis reservas</a>
+      <a class="btn btn-ghost btn-danger btn-block" style="margin-top:10px" href="../login/logout.php"><?= rp_icon('logout') ?> Cerrar sesión</a>
+    </aside>
 
-  <main>
-    <h2>Información Personal</h2>
-    <section id="datos-personales">
+    <section class="panel reveal">
+      <h2>Información personal</h2>
 
-      <article>
-        <form method="post" action="../../back/Procesar/procesar.php">
-          <label>Usuario
-            <input type="text" name="nickname" value="<?= htmlspecialchars($user['nickname']) ?>" required>
-          </label>
-          <label>Correo
-            <input type="email" name="correo" value="<?= htmlspecialchars($user['correo']) ?>" required>
-          </label>
-          <label>Teléfono
-            <input type="text" name="telefono" value="<?= htmlspecialchars($user['telefono']) ?>">
-          </label>
-          <label>Nueva contraseña (opcional)
-            <input type="password" name="new_password" placeholder="Dejar en blanco para mantener">
-          </label>
-          <input type="hidden" name="accion" value="update_profile">
-          <input type="submit" value="Actualizar">
-        </form>
-        <p><a href="../login/logout.php">Cerrar sesión</a></p>
-      </article>
+      <?php if (isset($_GET['ok'])): ?>
+        <p class="alert success show" role="status" style="margin-bottom:16px">Datos actualizados correctamente.</p>
+      <?php elseif (isset($_GET['error'])): ?>
+        <p class="alert show" role="alert" style="margin-bottom:16px"><?= htmlspecialchars($_GET['error']) ?></p>
+      <?php endif; ?>
 
+      <form class="form" method="post" action="../../back/Procesar/procesar.php">
+        <label class="field">
+          <span>Usuario</span>
+          <input class="input" type="text" name="nickname" value="<?= htmlspecialchars($user['nickname']) ?>" required>
+        </label>
+        <label class="field">
+          <span>Correo</span>
+          <input class="input" type="email" name="correo" value="<?= htmlspecialchars($user['correo']) ?>" required>
+        </label>
+        <label class="field">
+          <span>Teléfono</span>
+          <input class="input" type="tel" name="telefono" value="<?= htmlspecialchars($user['telefono']) ?>">
+        </label>
+        <div class="field">
+          <label for="new_password">Nueva contraseña (opcional)</label>
+          <div class="pw-wrap">
+            <input class="input" type="password" id="new_password" name="new_password" placeholder="Déjala en blanco para mantener la actual" autocomplete="new-password">
+            <button type="button" data-toggle-pw="new_password" aria-label="Mostrar u ocultar contraseña">
+              <span class="i-show"><?= rp_icon('eye') ?></span><span class="i-hide" hidden><?= rp_icon('eye-off') ?></span>
+            </button>
+          </div>
+          <span class="hint muted">Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo.</span>
+        </div>
+        <input type="hidden" name="accion" value="update_profile">
+        <div><button class="btn btn-primary" type="submit">Guardar cambios</button></div>
+      </form>
     </section>
+  </div>
+</main>
 
-  </main>
-</body>
-
-</html>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('stat-cart').textContent = RP.cart.count();
+  });
+</script>
+<?php rp_footer(['password.js']); ?>
