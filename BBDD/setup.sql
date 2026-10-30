@@ -1,5 +1,6 @@
 -- Crear la base de datos si no existe
-CREATE DATABASE IF NOT EXISTS retroplay;
+DROP DATABASE IF EXISTS retroplay;
+CREATE DATABASE retroplay;
 USE retroplay;
 
 -- Crear tablas en el orden correcto para respetar claves foráneas
@@ -48,9 +49,9 @@ CREATE TABLE IF NOT EXISTS lineareservas (
 );
 
 -- CREAR USUARIO:
-CREATE USER 
-'retroplay'@'localhost' 
-IDENTIFIED  BY 'Retroplay123$';
+CREATE USER IF NOT EXISTS
+  'retroplay'@'localhost'
+  IDENTIFIED BY 'Retroplay123$';
 
 GRANT USAGE ON *.* TO 'retroplay'@'localhost';
 
