@@ -12,13 +12,46 @@ Retroplay es una aplicación web para el alquiler de consolas y videojuegos retr
 - **Reservas**: Realiza pedidos de alquiler y consulta tu historial de reservas.
 - **Diseño responsivo**: Accesible en varios dispositivos.
 
+## Capturas de pantalla
+
+### Catálogo
+
+Tema oscuro (por defecto) y tema claro, con búsqueda en vivo, filtros por categoría, favoritos y ordenación.
+
+| Tema oscuro | Tema claro |
+|:---:|:---:|
+| ![Catálogo en tema oscuro](docs/screenshots/inicio-dark.png) | ![Catálogo en tema claro](docs/screenshots/inicio-light.png) |
+
+### Detalle de producto y carrito
+
+| Detalle de producto | Carrito |
+|:---:|:---:|
+| ![Modal de detalle de producto](docs/screenshots/detalle-producto.png) | ![Carrito con cantidades y semanas de alquiler](docs/screenshots/carrito.png) |
+
+### Reservas y cuenta
+
+| Mis reservas | Mi cuenta |
+|:---:|:---:|
+| ![Historial de reservas](docs/screenshots/reservas.png) | ![Gestión de la cuenta de usuario](docs/screenshots/mi-cuenta.png) |
+
+### Acceso
+
+![Inicio de sesión](docs/screenshots/login.png)
+
+### Versión móvil
+
+| Catálogo | Carrito |
+|:---:|:---:|
+| <img src="docs/screenshots/inicio-movil.png" alt="Catálogo en móvil" width="300"> | <img src="docs/screenshots/carrito-movil.png" alt="Carrito en móvil" width="300"> |
+
 ## Estructura del Proyecto
 
 El proyecto está organizado de la siguiente manera:
 
 - **`back/`**: Contiene la lógica del backend.
   - `Conexion_BD/`: Scripts de conexión a la base de datos.
-  - `Procesar/`: Lógica de procesamiento (por ejemplo, gestión de formularios).
+  - `Procesar/`: Lógica de procesamiento (registro, login, reservas, perfil).
+  - `Validadores/`: Validación de contraseñas.
 - **`front/`**: Contiene las páginas y recursos del frontend.
   - `assets/`: CSS compartido (`css/retroplay.css`), JS (`js/`), fuentes e imágenes de productos.
   - `includes/layout.php`: Cabecera, navegación y pie de página compartidos.
@@ -29,7 +62,7 @@ El proyecto está organizado de la siguiente manera:
   - `mi_cuenta/`: Gestión de la cuenta de usuario.
   - `mis_reservas/`: Historial de reservas del usuario.
 - **`BBDD/`**: Scripts de inicialización de la base de datos.
-  - `setup_final.sql`: Script SQL para crear la base de datos y las tablas, e insertar los datos iniciales.
+  - `setup.sql`: Script SQL para crear la base de datos y las tablas, e insertar los datos iniciales.
 
 ## Tecnologías Utilizadas
 
@@ -53,10 +86,8 @@ El proyecto está organizado de la siguiente manera:
 
 2. **Configuración de la Base de Datos**:
    - Crea una base de datos MySQL (o deja que el script lo haga).
-   - Importa el archivo `BBDD/setup_final.sql` en tu servidor MySQL. Esto creará la base de datos `retroplay`, las tablas e insertará datos de ejemplo.
+   - Importa el archivo `BBDD/setup.sql` en tu servidor MySQL. Esto creará la base de datos `retroplay`, las tablas e insertará datos de ejemplo.
    - El script crea un usuario `retroplay` con la contraseña `Retroplay123$`. Si deseas utilizar credenciales diferentes, actualiza `back/Conexion_BD/conexion.php`.
-
-   - **¿Actualizando una base de datos existente?** Ejecuta `BBDD/migracion_carrito.sql` en su lugar (añade las columnas `cantidad`, `semanas` y `total`).
 
 3. **Configuración**:
    - Asegúrate de que tu servidor web esté configurado para servir la raíz del proyecto.
